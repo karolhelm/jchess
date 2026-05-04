@@ -1,0 +1,49 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel} % Zmieniono na 'english', ponieważ tekst jest po angielsku
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\title{\textbf{JChess}}
+\date{}
+
+\begin{document}
+
+\maketitle
+\section{Team Members}
+Karol Helm (group 3), Stanisław Wasilewski (group 3)
+
+\section{Project Overview}
+The project will cover the implementation of an application that allows users to play hot-seat classic chess and its variations. The main priority of our work is to deliver the basic features described later in this document. Additional features will be implemented depending on the technical challenges encountered and their overall feasibility. However, we intend to deliver most of them in some capacity.
+
+\section{Basic Features}
+\begin{enumerate}
+    \item Implementation of classical chess rules, including:
+    \begin{itemize}
+        \item Basic validation of piece movements.
+        \item Advanced rules such as pinning, castling, and en passant.
+        \item Checkmate.
+    \end{itemize}
+    \item Implementation of synchronized chess clocks using multithreading in Java.
+    \item Implementation of a library of popular chess openings, demonstrating moves one by one.
+    \item Implementation of storing and displaying the course of the game in standard chess notation.
+    \item Implementation of a FEN notation parser, allowing users to load a game and convert the current board state into FEN.
+    \item Implementation of a graphical representation of captured pieces for each player, including the calculation of the material difference.
+\end{enumerate}
+
+\section{Additional Features}
+\begin{enumerate}
+    \item Allowing the user to play against a bot. The bot will be implemented using techniques such as the Minimax algorithm and alpha-beta pruning. The scope of this feature heavily depends on the technical challenges encountered during development.
+    \item Chess position evaluator: a tool that will calculate the current position and indicate which player has the advantage and how significant it is. This feature is closely related to the bot implementation, but we intend to deliver it in some form, as it might turn out to be relatively straightforward.
+    \item Different chess variations, such as Chess960, Los Alamos chess, and Duck chess.
+    \item Implementation of a history of recent games where the evaluation of past positions can be reviewed.
+\end{enumerate}
+
+\section{Frameworks / Libraries}
+JavaFX
+
+\end{document}
