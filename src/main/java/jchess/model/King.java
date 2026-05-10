@@ -27,6 +27,34 @@ public class King extends Piece {
                 }
             }
         }
+        if(!this.hasMoved){
+            int row = currentSquare.getRow();
+            Square kingsideRookSquare = new Square(row, 7);
+            Piece kingsideRook = board.getPiece(kingsideRookSquare);
+            if(kingsideRook instanceof Rook && !kingsideRook.hasMoved){
+                if (board.isEmpty(new Square(row, 5)) && board.isEmpty(new Square(row, 6))) {
+                    Square castlingTarget = new Square(row, 6);
+                    Move castlingMove = new Move(currentSquare, castlingTarget, this, null);
+                    castlingMove.setCastling(true);
+                    possibleMoves.add(castlingMove);
+                }
+            }
+
+            Square queensideRookSquare = new Square(row, 0);
+            Piece queensideRook = board.getPiece(queensideRookSquare);
+
+            if (queensideRook instanceof Rook && !queensideRook.hasMoved) {
+                if (board.isEmpty(new Square(row, 1)) &&
+                        board.isEmpty(new Square(row, 2)) &&
+                        board.isEmpty(new Square(row, 3))) {
+
+                    Square castlingTarget = new Square(row, 2);
+                    Move castlingMove = new Move(currentSquare, castlingTarget, this, null);
+                    castlingMove.setCastling(true);
+                    possibleMoves.add(castlingMove);
+                }
+            }
+        }
         return possibleMoves;
     }
 }
