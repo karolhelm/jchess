@@ -2,7 +2,13 @@ package jchess.model;
 
 public class Board {
     private Piece[][] grid;
-
+    private Move lastMove;
+    public Move getLastMove() {
+        return lastMove;
+    }
+    public void setLastMove(Move move) {
+        this.lastMove = move;
+    }
     public Board(){
         this.grid = new Piece[8][8];
         initializeBoard();
@@ -66,7 +72,9 @@ public class Board {
                     grid[row][3] = rook;
                 }
             } else if(move.isEnPassant()){
-
+                int capturedPawnRow = start.getRow();
+                int capturedPawnCol = end.getCol();
+                grid[capturedPawnRow][capturedPawnCol] = null;
             }
         }
     }

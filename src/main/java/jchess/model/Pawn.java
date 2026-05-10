@@ -41,6 +41,20 @@ public class Pawn extends Piece {
                 }
             }
         }
+        Move lastMove = board.getLastMove();
+        if (lastMove!=null&&lastMove.getPieceMoved() instanceof Pawn){
+            int lastMoveStartRow=lastMove.getStart().getRow();
+            int lastMoveEndRow=lastMove.getEnd().getRow();
+            int lastMoveCol=lastMove.getEnd().getCol();
+            if(Math.abs(lastMoveStartRow-lastMoveEndRow)==2){
+                if (lastMoveEndRow == currentRow && Math.abs(lastMoveCol - currentCol) == 1){
+                    Square enPassantTarget = new Square(currentRow + direction, lastMoveCol);
+                    Move epMove = new Move(currentSquare, enPassantTarget, this, lastMove.getPieceMoved());
+                    epMove.setEnPassant(true);
+                    possibleMoves.add(epMove);
+                }
+            }
+        }
 
         return possibleMoves;
     }
