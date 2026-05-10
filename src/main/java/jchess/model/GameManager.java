@@ -23,6 +23,7 @@ public class GameManager {
     public void playMove(Move move) {
         board.movePiece(move);
         move.getPieceMoved().setHasMoved(true);
+        board.setLastMove(move);
         switchTurn();
     }
 
