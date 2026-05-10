@@ -3,12 +3,6 @@ package jchess.model;
 public class Board {
     private Piece[][] grid;
     private Move lastMove;
-    public Move getLastMove() {
-        return lastMove;
-    }
-    public void setLastMove(Move move) {
-        this.lastMove = move;
-    }
     public Board(){
         this.grid = new Piece[8][8];
         initializeBoard();
@@ -51,6 +45,12 @@ public class Board {
             grid[square.getRow()][square.getCol()] = piece;
         }
     }
+    public Move getLastMove() {
+        return lastMove;
+    }
+    public void setLastMove(Move move) {
+        this.lastMove = move;
+    }
 
     public void movePiece(Move move){
         Square start = move.getStart();
@@ -75,6 +75,17 @@ public class Board {
                 int capturedPawnRow = start.getRow();
                 int capturedPawnCol = end.getCol();
                 grid[capturedPawnRow][capturedPawnCol] = null;
+            }
+            if (movingPiece instanceof Pawn) {
+                int endRow = end.getRow();
+                int endCol = end.getCol();
+                if (endRow == 0 || endRow == 7) {
+                    if (move.getPromotionPiece() != null) {
+                        grid[endRow][endCol] = move.getPromotionPiece();
+                    } else {
+                        grid[endRow][endCol] = new Queen(movingPiece.getColor());
+                    }
+                }
             }
         }
     }

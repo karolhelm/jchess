@@ -41,6 +41,7 @@ public class Pawn extends Piece {
                 }
             }
         }
+        //en passant
         Move lastMove = board.getLastMove();
         if (lastMove!=null&&lastMove.getPieceMoved() instanceof Pawn){
             int lastMoveStartRow=lastMove.getStart().getRow();

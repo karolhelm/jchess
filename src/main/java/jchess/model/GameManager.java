@@ -7,6 +7,12 @@ public class GameManager {
     private final Board board;
     private Piece.Color currentTurn;
 
+    public enum GameStatus {
+        ACTIVE, WHITE_WINS, BLACK_WINS, STALEMATE
+    }
+
+    private GameStatus status = GameStatus.ACTIVE;
+
     public GameManager() {
         this.board = new Board();
         this.currentTurn = Piece.Color.WHITE;
@@ -20,11 +26,19 @@ public class GameManager {
         return currentTurn;
     }
 
+    public GameStatus getStatus() {
+        return status;
+    }
+
     public void playMove(Move move) {
+        if (status != GameStatus.ACTIVE) {
+            return;
+        }
         board.movePiece(move);
         move.getPieceMoved().setHasMoved(true);
         board.setLastMove(move);
         switchTurn();
+        updateGameStatus();
     }
 
     private void switchTurn() {
@@ -39,24 +53,47 @@ public class GameManager {
         Piece piece = board.getPiece(square);
         List<Move> legalMoves = new ArrayList<>();
 
-        if(piece == null || piece.getColor() != currentTurn){
+        if (piece == null || piece.getColor() != currentTurn) {
             return legalMoves;
         }
 
         List<Move> pseudoLegalMoves = piece.getPossibleMoves(board, square);
-        for(Move move : pseudoLegalMoves){
-            if(isMoveSafe(move)){
+        for (Move move : pseudoLegalMoves) {
+            if (isMoveSafe(move)) {
                 legalMoves.add(move);
             }
         }
         return legalMoves;
     }
 
-    private boolean isMoveSafe(Move move){
+    private boolean isMoveSafe(Move move) {
         Square start = move.getStart();
         Square end = move.getEnd();
         Piece movingPiece = move.getPieceMoved();
         Piece capturedPiece = move.getPieceCaptured();
+        // check logic when castling
+        if (move.isCastling()) {
+            if (isKingInCheck(movingPiece.getColor())) {
+                return false;
+            }
+            int row = start.getRow();
+            int crossedCol;
+            if (end.getCol() == 6) {
+                crossedCol = 5;
+            } else {
+                crossedCol = 3;
+            }
+            Square crossedSquare = new Square(row, crossedCol);
+            board.setPiece(crossedSquare, movingPiece);
+            board.setPiece(start, null);
+            boolean isCrossedSafe = !isKingInCheck(movingPiece.getColor());
+            board.setPiece(start, movingPiece);
+            board.setPiece(crossedSquare, null);
+            if (!isCrossedSafe) {
+                return false;
+            }
+
+        }
 
         board.setPiece(end, movingPiece);
         board.setPiece(start, null);
@@ -69,10 +106,10 @@ public class GameManager {
         return isSafe;
     }
 
-    private boolean isKingInCheck(Piece.Color color){
+    private boolean isKingInCheck(Piece.Color color) {
         Square kingSquare = null;
-        for(int row = 0; row < 8; row++){
-            for(int col = 0; col < 8; col++){
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
                 Square square = new Square(row, col);
                 Piece piece = board.getPiece(square);
                 if (piece instanceof King && piece.getColor() == color) {
@@ -80,7 +117,7 @@ public class GameManager {
                     break;
                 }
             }
-            if(kingSquare != null){
+            if (kingSquare != null) {
                 break;
             }
         }
@@ -90,20 +127,20 @@ public class GameManager {
         }
 
         Piece.Color enemyColor;
-        if(color == Piece.Color.WHITE){
-            enemyColor =  Piece.Color.BLACK;
-        }else{
+        if (color == Piece.Color.WHITE) {
+            enemyColor = Piece.Color.BLACK;
+        } else {
             enemyColor = Piece.Color.WHITE;
         }
 
-        for(int row = 0; row < 8; row++){
-            for(int col = 0; col < 8; col++){
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
                 Square square = new Square(row, col);
                 Piece piece = board.getPiece(square);
                 if (piece != null && piece.getColor() == enemyColor) {
                     List<Move> enemyMoves = piece.getPossibleMoves(board, square);
-                    for(Move move : enemyMoves){
-                        if(move.getEnd().equals(kingSquare)){
+                    for (Move move : enemyMoves) {
+                        if (move.getEnd().equals(kingSquare)) {
                             return true;
                         }
                     }
@@ -112,5 +149,38 @@ public class GameManager {
 
         }
         return false;
+    }
+    // checkmate and stalemate
+    private void updateGameStatus() {
+        boolean hasAnySafeMove = false;
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Square square = new Square(row, col);
+                Piece piece = board.getPiece(square);
+                if (piece != null && piece.getColor() == currentTurn) {
+                    List<Move> possibleMoves = piece.getPossibleMoves(board, square);
+                    for (Move move : possibleMoves) {
+                        if (isMoveSafe(move)) {
+                            hasAnySafeMove = true;
+                            break;
+                        }
+                    }
+                }
+                if (hasAnySafeMove) break;
+            }
+            if (hasAnySafeMove) break;
+        }
+        if (!(hasAnySafeMove)) {
+            if (isKingInCheck(currentTurn)) {
+                if (currentTurn == Piece.Color.WHITE) {
+                    status = GameStatus.BLACK_WINS;
+                } else {
+                    status = GameStatus.WHITE_WINS;
+                }
+            } else {
+                status = GameStatus.STALEMATE;
+
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ public class Move {
     private final Piece pieceCaptured;
     private boolean isCastling;
     private boolean isEnPassant;
-
+    private Piece promotionPiece;
     public Move(Square start, Square end, Piece pieceMoved, Piece pieceCaptured) {
         this.start = start;
         this.end = end;
@@ -49,6 +49,13 @@ public class Move {
     }
     public boolean isCapture() {
         return pieceCaptured != null;
+    }
+    public Piece getPromotionPiece() {
+        return promotionPiece;
+    }
+
+    public void setPromotionPiece(Piece promotionPiece) {
+        this.promotionPiece = promotionPiece;
     }
 
 }
