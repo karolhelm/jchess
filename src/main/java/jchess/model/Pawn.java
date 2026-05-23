@@ -14,12 +14,12 @@ public class Pawn extends Piece {
         int direction;
         int startRow;
         if(this.color==Color.WHITE){
-            direction=1;
-            startRow=1;
-        }
-        else{
             direction=-1;
             startRow=6;
+        }
+        else{
+            direction=1;
+            startRow=1;
         }
         Square forwardOne = new Square(currentRow + direction, currentCol);
         if (forwardOne.isValid() && board.getPiece(forwardOne) == null) {

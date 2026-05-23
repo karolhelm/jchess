@@ -46,8 +46,23 @@ public class ChessController {
             }
 
 
-            if (moveExecutor != null)
-                gameManager.playMove(moveExecutor);
+            if (moveExecutor!=null){
+                Piece movingPiece = moveExecutor.getPieceMoved();
+                boolean isPawn = movingPiece.getClass().getSimpleName().equals("Pawn");
+                int targetRow = moveExecutor.getEnd().getRow();
+                boolean isPromotion = isPawn && (targetRow == 0 || targetRow == 7);
+                if (isPromotion){
+                    final Move finalMove = moveExecutor;  //lambda for handling promotion
+                    view.showPromotionDialog(gameManager.getCurrentTurn(), chosenPiece->{
+                        finalMove.setPromotionPiece(chosenPiece);
+                        gameManager.playMove(finalMove);
+                        selectedSquare = null;
+                        view.drawBoard(null);
+                    });
+                    return;
+                } else
+                    gameManager.playMove(moveExecutor);
+            }
 
 
             selectedSquare = null;

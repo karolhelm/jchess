@@ -94,6 +94,12 @@ public class GameManager {
             }
 
         }
+        Square enPassantCaptureSquare = null;
+        if (move.isEnPassant()) {
+            enPassantCaptureSquare = new Square(start.getRow(), end.getCol());
+            board.setPiece(enPassantCaptureSquare, null);
+        }
+
 
         board.setPiece(end, movingPiece);
         board.setPiece(start, null);
@@ -101,10 +107,17 @@ public class GameManager {
         boolean isSafe = !isKingInCheck(movingPiece.getColor());
 
         board.setPiece(start, movingPiece);
-        board.setPiece(end, capturedPiece);
+
+        if (move.isEnPassant()) {
+            board.setPiece(end, null);
+            board.setPiece(enPassantCaptureSquare, capturedPiece);
+        } else {
+            board.setPiece(end, capturedPiece);
+        }
 
         return isSafe;
     }
+
 
     private boolean isKingInCheck(Piece.Color color) {
         Square kingSquare = null;
@@ -149,6 +162,9 @@ public class GameManager {
 
         }
         return false;
+    }
+    public void setStatus(GameStatus newStatus) {
+        this.status = newStatus;
     }
     // checkmate and stalemate
     private void updateGameStatus() {
