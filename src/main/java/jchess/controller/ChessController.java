@@ -19,6 +19,10 @@ public class ChessController {
 
         //handling mouse click from lambda
     public void handleSquareClick(int row, int col){
+        if (gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
+            return;
+        }
+
         Square clickedSquare = new Square(row, col);
         Piece clickedPiece = gameManager.getBoard().getPiece(clickedSquare);
 
@@ -63,6 +67,7 @@ public class ChessController {
                             gameManager.playMove(finalMove);
                             selectedSquare = null;
                             view.drawBoard(null, null);
+                            showGameOverIfNeeded();
                         });
                         return;
                     } else
@@ -72,7 +77,14 @@ public class ChessController {
 
                 selectedSquare = null;
                 view.drawBoard(null, null);
+                showGameOverIfNeeded();
             }
+        }
+    }
+
+    private void showGameOverIfNeeded() {
+        if (gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
+            view.showGameOverDialog();
         }
     }
 }
