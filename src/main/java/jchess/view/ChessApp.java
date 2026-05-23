@@ -16,8 +16,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import jchess.controller.ChessController;
@@ -27,6 +29,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.Cursor;
 import javafx.geometry.Pos;
 import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 public class ChessApp extends Application{
@@ -35,6 +38,7 @@ public class ChessApp extends Application{
     private ChessController controller;
     private GridPane boardGrid;
     private static final int TILE_SIZE = 80;
+    private static final int OFFSET_SIZE = 25;
     private int whiteTimeLeft = 300;
     private int blackTimeLeft = 300;    //time variables
     private Label whiteTimerLabel;
@@ -44,7 +48,9 @@ public class ChessApp extends Application{
     public void start(Stage primaryStage){
         gameManager = new GameManager();
         controller = new ChessController(gameManager, this);
-        boardGrid=new GridPane();
+        boardGrid = new GridPane();
+        boardGrid.setStyle("-fx-background-color: #312e2b;");
+        boardGrid.setAlignment(Pos.CENTER);
         BorderPane root = new BorderPane();
         root.setCenter(boardGrid);
         blackTimerLabel = createTimerLabel("Black: 05:00");
@@ -55,12 +61,9 @@ public class ChessApp extends Application{
         bottomBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
         root.setTop(topBar);
         root.setBottom(bottomBar);
-        root.setTop(topBar);
-        root.setBottom(bottomBar);
         startTimer();
-        drawBoard(null);        //basic inizalization //
-        Scene scene = new Scene(root, TILE_SIZE * 8, (TILE_SIZE * 8) + 80);
-
+        drawBoard(null, null);        //basic inizalization //
+        Scene scene = new Scene(root, (TILE_SIZE * 8) + OFFSET_SIZE, (TILE_SIZE * 8) + OFFSET_SIZE + 100);
         primaryStage.setTitle("JChess");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
@@ -116,18 +119,28 @@ public class ChessApp extends Application{
             alert.showAndWait();
         });
     }
-    public void drawBoard(Square selectedSquare){
+    public void drawBoard(Square selectedSquare, List<Move> legalMoves){
         boardGrid.getChildren().clear();
         Board board = gameManager.getBoard();
-
+        for (int i = 0; i < 8; i++) {
+            Label rankLabel = new Label(String.valueOf(8 - i));
+            rankLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            rankLabel.setTextFill(Color.web("#BABABA"));
+            rankLabel.setPrefSize(OFFSET_SIZE, TILE_SIZE);
+            rankLabel.setAlignment(Pos.CENTER);
+            boardGrid.add(rankLabel, 0, i);
+        }
         for (int row = 0; row < 8; row++){
             for (int col = 0; col < 8; col++){
                 StackPane tile = new StackPane();
                 //coloring board
+                int visualRow = row;
+                int visualCol = col + 1;
                 Rectangle background = new Rectangle(TILE_SIZE, TILE_SIZE);
                 boolean isLightSquare = (row + col) % 2 == 0;
                 background.setFill(isLightSquare ? Color.web("#F0D9B5") : Color.web("#B58863"));
                 tile.getChildren().add(background);
+
                 //mixing color with green to highlight a square
 
                 if (selectedSquare != null && selectedSquare.getRow() == row && selectedSquare.getCol() == col){
@@ -136,19 +149,49 @@ public class ChessApp extends Application{
                     tile.getChildren().add(highlight);
                 }
 
-
+                boolean isLegalMove = false;
+                if (legalMoves != null) {
+                    for (Move move : legalMoves) {
+                        if (move.getEnd().getRow() == row && move.getEnd().getCol() == col) {
+                            isLegalMove = true;
+                            break;
+                        }
+                    }
+                }
                 Piece piece = board.getPiece(new Square(row, col));
                 if (piece != null) {
                     ImageView pieceImage = getPieceImageView(piece);        //putting a piece as a top layer
                     if (pieceImage != null)
                         tile.getChildren().add(pieceImage);
                 }
-                    final int clickedRow = row;
-                    final int clickedCol = col; // Adds a click listener using lambda, passing the captured coordinates to the controller
-                    tile.setOnMouseClicked(event -> controller.handleSquareClick(clickedRow, clickedCol));
-                    boardGrid.add(tile, col, row);
+                if (isLegalMove) { //highlighting moves
+                    if (piece != null) {
+                        Circle captureIndicator = new Circle(TILE_SIZE / 2.5);
+                        captureIndicator.setFill(Color.TRANSPARENT);
+                        captureIndicator.setStroke(Color.web("#000000", 0.25));
+                        captureIndicator.setStrokeWidth(4);
+                        tile.getChildren().add(captureIndicator);
+                    } else {
+                        Circle moveIndicator = new Circle(TILE_SIZE / 6.0);
+                        moveIndicator.setFill(Color.web("#000000", 0.25));
+                        tile.getChildren().add(moveIndicator);
+                    }
+                }
+                final int clickedRow = row;
+                final int clickedCol = col; // Adds a click listener using lambda, passing the captured coordinates to the controller
+                tile.setOnMouseClicked(event -> controller.handleSquareClick(clickedRow, clickedCol));
+                boardGrid.add(tile, visualCol, visualRow);
 
             }
+        }
+        String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        for (int i = 0; i < 8; i++) {
+            Label fileLabel = new Label(files[i]);
+            fileLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            fileLabel.setTextFill(Color.web("#BABABA"));
+            fileLabel.setPrefSize(TILE_SIZE, OFFSET_SIZE);
+            fileLabel.setAlignment(Pos.CENTER);
+            boardGrid.add(fileLabel, i + 1, 8);
         }
     }
 
