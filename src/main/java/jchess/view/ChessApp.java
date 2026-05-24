@@ -40,10 +40,12 @@ public class ChessApp extends Application{
     private StackPane appRoot;
     private GridPane boardGrid;
     private StackPane gameOverOverlay;
+    private StackPane promotionOverlay;
+    private StackPane startMenuOverlay;
     private static final int TILE_SIZE = 60;
     private static final int OFFSET_SIZE = 25;
-    private int whiteTimeLeft = 300;
-    private int blackTimeLeft = 300;    //time variables
+    private int whiteTimeLeft = 0;
+    private int blackTimeLeft = 0;    //time variables
     private Label whiteTimerLabel;
     private Label blackTimerLabel;
     private Timeline timeline;
@@ -57,15 +59,15 @@ public class ChessApp extends Application{
         BorderPane root = new BorderPane();
         appRoot = new StackPane(root);
         root.setCenter(boardGrid);
-        blackTimerLabel = createTimerLabel("Black: 05:00");
-        whiteTimerLabel = createTimerLabel("White: 05:00");
+        blackTimerLabel = createTimerLabel("Black: --:--");
+        whiteTimerLabel = createTimerLabel("White: --:--");
         HBox topBar = new HBox(blackTimerLabel);
         topBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
         HBox bottomBar = new HBox(whiteTimerLabel);
         bottomBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
         root.setTop(topBar);
         root.setBottom(bottomBar);
-        startTimer();
+        showStartMenu();
         drawBoard(null, null);        //basic inizalization //
         Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE, (TILE_SIZE * 8) + OFFSET_SIZE + 100);
         primaryStage.setTitle("JChess");
@@ -74,6 +76,75 @@ public class ChessApp extends Application{
         primaryStage.show();
     }
 
+    private void showStartMenu() {
+        if (startMenuOverlay != null) return;
+
+        Label title = new Label("JChess");
+        title.setTextFill(Color.WHITE);
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+
+        Label subtitle = new Label("Wybierz czas gry");
+        subtitle.setTextFill(Color.web("#baca44"));
+        subtitle.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+
+        Button btn1Min = createTimeButton("1 min", 60);
+        Button btn3Min = createTimeButton("3 min", 180);
+        Button btn5Min = createTimeButton("5 min", 300);
+        Button btn10Min = createTimeButton("10 min", 600);
+
+        HBox topButtons = new HBox(15, btn1Min, btn3Min);
+        topButtons.setAlignment(Pos.CENTER);
+
+        HBox bottomButtons = new HBox(15, btn5Min, btn10Min);
+        bottomButtons.setAlignment(Pos.CENTER);
+
+        VBox content = new VBox(20, title, subtitle, topButtons, bottomButtons);
+        content.setAlignment(Pos.CENTER);
+        content.setPadding(new Insets(30, 40, 30, 40));
+        content.setMaxSize(350, 250);
+        content.setStyle(
+                "-fx-background-color: #312e2b;" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-color: #baca44;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-radius: 12;"
+        );
+
+        startMenuOverlay = new StackPane(content);
+        startMenuOverlay.setAlignment(Pos.CENTER);
+        startMenuOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
+        startMenuOverlay.setPickOnBounds(true);
+        appRoot.getChildren().add(startMenuOverlay);
+    }
+    private Button createTimeButton(String text, int timeInSeconds) {
+        Button btn = new Button(text);
+        btn.setPrefSize(100, 40);
+        btn.setTextFill(Color.web("#312e2b"));
+        btn.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        btn.setCursor(Cursor.HAND);
+        btn.setStyle(
+                "-fx-background-color: #f0d9b5;" +
+                        "-fx-background-radius: 8;"
+        );
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;"));
+        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #f0d9b5; -fx-background-radius: 8;"));
+
+        btn.setOnAction(event -> startGameWithTime(timeInSeconds));
+        return btn;
+    }
+    private void startGameWithTime(int timeInSeconds) {
+
+        appRoot.getChildren().remove(startMenuOverlay);
+        startMenuOverlay = null;
+
+        whiteTimeLeft = timeInSeconds;
+        blackTimeLeft = timeInSeconds;
+
+        whiteTimerLabel.setText("White: " + formatTime(whiteTimeLeft));
+        blackTimerLabel.setText("Black: " + formatTime(blackTimeLeft));
+
+        startTimer();
+    }
     private Label createTimerLabel(String initialText) {
         Label label = new Label(initialText);
         label.setTextFill(Color.WHITE);
@@ -146,16 +217,32 @@ public class ChessApp extends Application{
         message.setMaxWidth(280);
         message.setAlignment(Pos.CENTER);
 
-        Button okButton = new Button("OK");
-        okButton.setTextFill(Color.web("#312e2b"));
-        okButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
-        okButton.setStyle(
+        Button restartButton = new Button("Zagraj ponownie");
+        restartButton.setTextFill(Color.web("#312e2b"));
+        restartButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        restartButton.setCursor(Cursor.HAND);
+        restartButton.setStyle(
                 "-fx-background-color: " + getGameOverAccent() + ";" +
-                "-fx-background-radius: 8;" +
-                "-fx-padding: 8 26;"
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8 20;"
         );
+        restartButton.setOnAction(event -> restartGame());
 
-        VBox content = new VBox(12, badge, title, message, okButton);
+        Button exitButton = new Button("Wyjdź");
+        exitButton.setTextFill(Color.WHITE);
+        exitButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        exitButton.setCursor(Cursor.HAND);
+        exitButton.setStyle(
+                "-fx-background-color: #4a4744;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8 20;"
+        );
+        exitButton.setOnAction(event -> Platform.exit());
+
+        HBox buttonsBox = new HBox(15, exitButton, restartButton);
+        buttonsBox.setAlignment(Pos.CENTER);
+
+        VBox content = new VBox(12, badge, title, message, buttonsBox);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(24, 32, 20, 32));
         content.setMaxWidth(340);
@@ -171,12 +258,20 @@ public class ChessApp extends Application{
         gameOverOverlay.setAlignment(Pos.CENTER);
         gameOverOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.45);");
         gameOverOverlay.setPickOnBounds(true);
-        okButton.setOnAction(event -> {
-            appRoot.getChildren().remove(gameOverOverlay);
-            gameOverOverlay = null;
-        });
-
         appRoot.getChildren().add(gameOverOverlay);
+    }
+    private void restartGame() {
+
+        appRoot.getChildren().remove(gameOverOverlay);
+        gameOverOverlay = null;
+
+        gameManager = new GameManager();
+        controller = new ChessController(gameManager, this);
+
+
+        drawBoard(null, null);
+
+        showStartMenu();
     }
 
     private String getGameOverBadge(String reason) {
@@ -321,9 +416,9 @@ public class ChessApp extends Application{
         return imageView;
     }
     public void showPromotionDialog(Piece.Color color, Consumer<Piece> onPieceSelected) {
-        Dialog<Piece> dialog = new Dialog<>();
-        dialog.setTitle("");
-        dialog.setHeaderText("");
+        if (promotionOverlay != null) {
+            return;
+        }
 
         Piece queen = new Queen(color);
         Piece rook = new Rook(color);
@@ -352,22 +447,40 @@ public class ChessApp extends Application{
         }
 
 
-        qImg.setOnMouseClicked(e -> { dialog.setResult(queen); dialog.close(); });
-        rImg.setOnMouseClicked(e -> { dialog.setResult(rook); dialog.close(); });
-        bImg.setOnMouseClicked(e -> { dialog.setResult(bishop); dialog.close(); });
-        nImg.setOnMouseClicked(e -> { dialog.setResult(knight); dialog.close(); });
+        qImg.setOnMouseClicked(e -> handlePromotionSelection(queen, onPieceSelected));
+        rImg.setOnMouseClicked(e -> handlePromotionSelection(rook, onPieceSelected));
+        bImg.setOnMouseClicked(e -> handlePromotionSelection(bishop, onPieceSelected));
+        nImg.setOnMouseClicked(e -> handlePromotionSelection(knight, onPieceSelected));
 
 
         HBox box = new HBox(15, qImg, rImg, bImg, nImg);
         box.setAlignment(Pos.CENTER);
-        dialog.getDialogPane().setContent(box);
+        Label titleLabel = new Label("Wybierz figurę do promocji");
+        titleLabel.setTextFill(Color.WHITE);
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
+        VBox dialogContent = new VBox(20, titleLabel, box);
+        dialogContent.setAlignment(Pos.CENTER);
+        dialogContent.setPadding(new Insets(20, 30, 20, 30));
+        dialogContent.setMaxSize(400, 150);
 
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
-        dialog.getDialogPane().lookupButton(ButtonType.CANCEL).setVisible(false);
+        dialogContent.setStyle(
+                "-fx-background-color: #312e2b;" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-color: #baca44;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-radius: 12;"
+        );
 
-        dialog.showAndWait().ifPresent(chosenPiece -> {
-            onPieceSelected.accept(chosenPiece);
-        });
+        promotionOverlay = new StackPane(dialogContent);
+        promotionOverlay.setAlignment(Pos.CENTER);
+        promotionOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.6);");
+
+        appRoot.getChildren().add(promotionOverlay);
+    }
+    private void handlePromotionSelection(Piece chosenPiece, Consumer<Piece> onPieceSelected) {
+        appRoot.getChildren().remove(promotionOverlay);
+        promotionOverlay = null;
+        onPieceSelected.accept(chosenPiece);
     }
 }
