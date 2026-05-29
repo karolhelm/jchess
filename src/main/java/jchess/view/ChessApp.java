@@ -64,7 +64,7 @@ public class ChessApp extends Application{
         blackGraveyard = new GraveyardView(this::getPieceImageView);
         whiteGraveyard = new GraveyardView(this::getPieceImageView);
 
-        VBox topBar = new VBox(5, blackTimerLabel, blackGraveyard);
+        VBox topBar = new VBox(5, blackGraveyard, blackTimerLabel);
         topBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
 
         VBox bottomBar = new VBox(5, whiteTimerLabel, whiteGraveyard);
