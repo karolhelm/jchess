@@ -30,10 +30,39 @@ public class GameManager {
         return status;
     }
 
+    private List<Piece> capturedWhitePieces = new ArrayList<>();
+    private List<Piece> capturedBlackPieces = new ArrayList<>();  //graveyard variables
+    private int whiteMaterial = 39;
+    private int blackMaterial = 39;
+    public List<Piece> getCapturedBlackPieces(){
+        return capturedBlackPieces;
+    }
+    public List<Piece> getCapturedWhitePieces(){
+        return capturedWhitePieces;
+    }
     public void playMove(Move move) {
-        if (status != GameStatus.ACTIVE) {
+        if (status != GameStatus.ACTIVE){
             return;
         }
+        Piece captured = move.getPieceCaptured();
+        if(captured!=null) {
+            if(captured.getColor() == Piece.Color.WHITE){
+                capturedWhitePieces.add(captured);
+                whiteMaterial -= captured.getValue();
+            }else{
+                capturedBlackPieces.add(captured);
+                blackMaterial -= captured.getValue();
+            }
+        }
+
+        if (move.getPromotionPiece() != null){
+            int bonus = move.getPromotionPiece().getValue() - move.getPieceMoved().getValue();
+            if(move.getPieceMoved().getColor() == Piece.Color.WHITE)
+                whiteMaterial += bonus;
+             else
+                blackMaterial += bonus;
+        }
+
         board.movePiece(move);
         move.getPieceMoved().setHasMoved(true);
         board.setLastMove(move);
@@ -198,5 +227,12 @@ public class GameManager {
 
             }
         }
+    }
+    public int getMaterialAdvantage(Piece.Color color) {
+        if (color == Piece.Color.WHITE)
+            return whiteMaterial - blackMaterial;
+        else
+            return blackMaterial - whiteMaterial;
+
     }
 }

@@ -38,4 +38,8 @@ public class Bishop extends Piece {
         }
         return possibleMoves;
     }
+    @Override
+    public int getValue(){
+        return 3;
+    }
 }

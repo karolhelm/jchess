@@ -28,4 +28,8 @@ abstract public class Piece {
     }
 
     public abstract List<Move> getPossibleMoves(Board board, Square currentSquare);
+
+    public int getValue(){
+        return 0;
+    }
 }

@@ -8,7 +8,6 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -26,7 +25,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import jchess.controller.ChessController;
 import jchess.model.*;
-import javafx.scene.control.Dialog;
 import javafx.scene.Cursor;
 import javafx.geometry.Pos;
 import java.net.URL;
@@ -49,6 +47,8 @@ public class ChessApp extends Application{
     private Label whiteTimerLabel;
     private Label blackTimerLabel;
     private Timeline timeline;
+    private GraveyardView blackGraveyard;
+    private GraveyardView whiteGraveyard;
     @Override
     public void start(Stage primaryStage){
         gameManager = new GameManager();
@@ -61,15 +61,20 @@ public class ChessApp extends Application{
         root.setCenter(boardGrid);
         blackTimerLabel = createTimerLabel("Black: --:--");
         whiteTimerLabel = createTimerLabel("White: --:--");
-        HBox topBar = new HBox(blackTimerLabel);
+        blackGraveyard = new GraveyardView(this::getPieceImageView);
+        whiteGraveyard = new GraveyardView(this::getPieceImageView);
+
+        VBox topBar = new VBox(5, blackTimerLabel, blackGraveyard);
         topBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
-        HBox bottomBar = new HBox(whiteTimerLabel);
+
+        VBox bottomBar = new VBox(5, whiteTimerLabel, whiteGraveyard);
         bottomBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
+
         root.setTop(topBar);
         root.setBottom(bottomBar);
         showStartMenu();
         drawBoard(null, null);        //basic inizalization //
-        Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE, (TILE_SIZE * 8) + OFFSET_SIZE + 100);
+        Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE, (TILE_SIZE * 8) + OFFSET_SIZE + 140);
         primaryStage.setTitle("JChess");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
@@ -482,5 +487,16 @@ public class ChessApp extends Application{
         appRoot.getChildren().remove(promotionOverlay);
         promotionOverlay = null;
         onPieceSelected.accept(chosenPiece);
+    }
+    public void updateGraveyards(){
+        blackGraveyard.update(
+                gameManager.getCapturedWhitePieces(),
+                gameManager.getMaterialAdvantage(Piece.Color.BLACK)
+        );
+
+        whiteGraveyard.update(
+                gameManager.getCapturedBlackPieces(),
+                gameManager.getMaterialAdvantage(Piece.Color.WHITE)
+        );
     }
 }

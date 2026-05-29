@@ -67,6 +67,7 @@ public class ChessController {
                             gameManager.playMove(finalMove);
                             selectedSquare = null;
                             view.drawBoard(null, null);
+                            view.updateGraveyards();
                             showGameOverIfNeeded();
                         });
                         return;
@@ -77,6 +78,7 @@ public class ChessController {
 
                 selectedSquare = null;
                 view.drawBoard(null, null);
+                view.updateGraveyards();
                 showGameOverIfNeeded();
             }
         }
