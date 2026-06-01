@@ -16,7 +16,16 @@ public class Move {
         this.isCastling = false;
         this.isEnPassant = false;
     }
-
+    public Move(Square start, Square end, Piece pieceMoved, Piece pieceCaptured,
+                Piece promotionPiece, boolean isEnPassant, boolean isCastling) {
+        this.start = start;
+        this.end = end;  //constructor for complicated moves
+        this.pieceMoved = pieceMoved;
+        this.pieceCaptured = pieceCaptured;
+        this.promotionPiece = promotionPiece;
+        this.isEnPassant = isEnPassant;
+        this.isCastling = isCastling;
+    }
     public Square getStart() {
         return start;
     }

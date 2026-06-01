@@ -1,35 +1,52 @@
 package jchess.model;
 
-import java.util.List;
+public enum Piece {
+    WHITE_PAWN(PieceType.PAWN, PieceColor.WHITE),
+    WHITE_KNIGHT(PieceType.KNIGHT, PieceColor.WHITE),
+    WHITE_BISHOP(PieceType.BISHOP, PieceColor.WHITE),
+    WHITE_ROOK(PieceType.ROOK, PieceColor.WHITE),
+    WHITE_QUEEN(PieceType.QUEEN, PieceColor.WHITE),
+    WHITE_KING(PieceType.KING, PieceColor.WHITE),
 
-abstract public class Piece {
-    public enum Color {
-        WHITE, BLACK
-    }
+    BLACK_PAWN(PieceType.PAWN, PieceColor.BLACK),  //enum
+    BLACK_KNIGHT(PieceType.KNIGHT, PieceColor.BLACK),
+    BLACK_BISHOP(PieceType.BISHOP, PieceColor.BLACK),
+    BLACK_ROOK(PieceType.ROOK, PieceColor.BLACK),
+    BLACK_QUEEN(PieceType.QUEEN, PieceColor.BLACK),
+    BLACK_KING(PieceType.KING, PieceColor.BLACK);
 
-    protected boolean hasMoved = false;
+    private final PieceType type;
+    private final PieceColor color;
 
-    protected final Color color;
-
-    public Piece(Color color) {
+    Piece(PieceType type, PieceColor color){
+        this.type = type;
         this.color = color;
     }
 
-    public Color getColor() {
+    public PieceType getType(){
+        return type;
+    }
+    public PieceColor getColor(){
         return color;
-    }
-
-    public boolean hasMoved() {
-        return hasMoved;
-    }
-
-    public void setHasMoved(boolean hasMoved) {
-        this.hasMoved = hasMoved;
-    }
-
-    public abstract List<Move> getPossibleMoves(Board board, Square currentSquare);
-
+    }           //simple getters
     public int getValue(){
-        return 0;
+        return type.getValue();
+    }
+
+
+    public char getFenSymbol(){
+        if(this.color == PieceColor.WHITE) //converting board  to FEN
+            return Character.toUpperCase(type.getSymbol());
+        else
+            return type.getSymbol();
+    }
+
+            //converting FEN to board
+    public static Piece fromFenSymbol(char symbol){
+        for(Piece piece : values()){
+            if (piece.getFenSymbol() == symbol)
+                return piece;
+        }
+        return null;
     }
 }
