@@ -12,7 +12,7 @@ public class Move {
         this.start = start;
         this.end = end;
         this.pieceMoved = pieceMoved;
-        this.pieceCaptured = pieceCaptured;
+        this.pieceCaptured = pieceCaptured;  //simple move
         this.isCastling = false;
         this.isEnPassant = false;
     }

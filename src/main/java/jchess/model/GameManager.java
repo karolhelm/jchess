@@ -17,7 +17,7 @@ public class GameManager {
 
     private GameStatus status = GameStatus.ACTIVE;
 
-    public GameManager() {
+    public GameManager(){
         this.board = new Board();
         FenParser.loadFen(this, FenParser.STARTING_FEN);
         this.currentTurn = PieceColor.WHITE;
@@ -94,10 +94,12 @@ public class GameManager {
         Piece piece = move.getPieceMoved();
         if (piece.getType() == PieceType.KING){
             if (piece.getColor() == PieceColor.WHITE){
-                whiteCastleKingside = false; whiteCastleQueenside = false;
+                whiteCastleKingside = false;
+                whiteCastleQueenside = false;
             }
             else{
-                blackCastleKingside = false; blackCastleQueenside = false;
+                blackCastleKingside = false;
+                blackCastleQueenside = false;
             }
         }else if(piece.getType() == PieceType.ROOK){
             if (move.getStart().equals(new Square(7, 7))) whiteCastleKingside = false;
@@ -106,7 +108,7 @@ public class GameManager {
             if (move.getStart().equals(new Square(0, 0))) blackCastleQueenside = false;
         }
     }
-    private void switchTurn() {
+    private void switchTurn(){
         currentTurn = currentTurn.opposite();//useful method from enum
     }
 

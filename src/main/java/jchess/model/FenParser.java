@@ -25,7 +25,11 @@ public class FenParser {
             }
         }
         if (parts.length > 1){
-            manager.setCurrentTurn(parts[1].equals("w") ? PieceColor.WHITE : PieceColor.BLACK);
+            if (parts[1].equals("w"))
+                manager.setCurrentTurn(PieceColor.WHITE);
+            else
+                manager.setCurrentTurn(PieceColor.BLACK);
+
         }
 
         if (parts.length > 2){
@@ -36,7 +40,7 @@ public class FenParser {
             manager.setBlackCastleQueenside(castling.contains("q"));
         }
 
-        // 4. BICIE W PRZELOCIE (En Passant target square)
+        // (En Passant target square)
         if (parts.length > 3 && !parts[3].equals("-")){
             int epCol = parts[3].charAt(0) - 'a'; //column number
             int epRow = 8 - Character.getNumericValue(parts[3].charAt(1));

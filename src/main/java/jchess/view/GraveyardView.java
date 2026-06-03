@@ -41,7 +41,7 @@ public class GraveyardView extends HBox{
         capturedPieces.sort((p1, p2) -> Integer.compare(p2.getValue(), p1.getValue()));
 
         for(Piece p : capturedPieces){
-            ImageView img = imageProvider.apply(p);
+            ImageView img = imageProvider.apply(p); //getting images
             if(img != null){
                 img.setFitWidth(25);
                 img.setFitHeight(25);
