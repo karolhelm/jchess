@@ -31,8 +31,11 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import jchess.config.AppConfig;
+import jchess.config.AppConfigLoader;
+import jchess.config.BoardTheme;
+import jchess.config.UiConfig;
 public class ChessApp extends Application{
-
     private GameManager gameManager;
     private ChessController controller;
     private StackPane appRoot;
@@ -49,12 +52,20 @@ public class ChessApp extends Application{
     private Timeline timeline;
     private GraveyardView blackGraveyard;
     private GraveyardView whiteGraveyard;
+    private AppConfig appConfig;
+    private String selectedThemeId;
     @Override
     public void start(Stage primaryStage){
+        try{
+            appConfig = AppConfigLoader.load();
+        }catch (Exception e){
+            throw new RuntimeException("Json crashed", e);
+        }
+        selectedThemeId = appConfig.getDefaultBoardThemeId();
         gameManager = new GameManager();
         controller = new ChessController(gameManager, this);
         boardGrid = new GridPane();
-        boardGrid.setStyle("-fx-background-color: #312e2b;");
+        boardGrid.setStyle("-fx-background-color: " + ui().getBackground() + ";");
         boardGrid.setAlignment(Pos.CENTER);
         BorderPane root = new BorderPane();
         appRoot = new StackPane(root);
@@ -65,10 +76,10 @@ public class ChessApp extends Application{
         whiteGraveyard = new GraveyardView(this::getPieceImageView);
 
         VBox topBar = new VBox(5, blackGraveyard, blackTimerLabel);
-        topBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
+        topBar.setStyle("-fx-background-color: " + ui().getBackground() + "; -fx-padding: 10; -fx-alignment: center;");
 
         VBox bottomBar = new VBox(5, whiteTimerLabel, whiteGraveyard);
-        bottomBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
+        bottomBar.setStyle("-fx-background-color: " + ui().getBackground() + "; -fx-padding: 10; -fx-alignment: center;");
 
         root.setTop(topBar);
         root.setBottom(bottomBar);
@@ -88,10 +99,17 @@ public class ChessApp extends Application{
         title.setTextFill(Color.WHITE);
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
 
-        Label subtitle = new Label("Wybierz czas gry");
-        subtitle.setTextFill(Color.web("#baca44"));
+        Label subtitle = new Label("Wybierz motyw i czas gry");
+        subtitle.setTextFill(Color.web(ui().getAccent()));
         subtitle.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-
+        Label themeSubtitle = new Label("Motyw planszy");
+        themeSubtitle.setTextFill(Color.web(ui().getAccent()));
+        themeSubtitle.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        HBox themeButtons = new HBox(10);
+        themeButtons.setAlignment(Pos.CENTER);
+        for (BoardTheme theme : appConfig.getBoardThemes()) {
+            themeButtons.getChildren().add(createThemeButton(theme));
+        }
         Button btn1Min = createTimeButton("1 min", 60);
         Button btn3Min = createTimeButton("3 min", 180);
         Button btn5Min = createTimeButton("5 min", 300);
@@ -103,18 +121,17 @@ public class ChessApp extends Application{
         HBox bottomButtons = new HBox(15, btn5Min, btn10Min);
         bottomButtons.setAlignment(Pos.CENTER);
 
-        VBox content = new VBox(20, title, subtitle, topButtons, bottomButtons);
+        VBox content = new VBox(15, title, themeSubtitle, themeButtons, subtitle, topButtons, bottomButtons);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(30, 40, 30, 40));
-        content.setMaxSize(350, 250);
+        content.setMaxSize(380, 320);
         content.setStyle(
-                "-fx-background-color: #312e2b;" +
+                "-fx-background-color: " + ui().getBackground() + ";" +
                         "-fx-background-radius: 12;" +
-                        "-fx-border-color: #baca44;" +
+                        "-fx-border-color: " + ui().getAccent() + ";" +
                         "-fx-border-width: 2;" +
                         "-fx-border-radius: 12;"
         );
-
         startMenuOverlay = new StackPane(content);
         startMenuOverlay.setAlignment(Pos.CENTER);
         startMenuOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
@@ -124,21 +141,33 @@ public class ChessApp extends Application{
     private Button createTimeButton(String text, int timeInSeconds) {
         Button btn = new Button(text);
         btn.setPrefSize(100, 40);
-        btn.setTextFill(Color.web("#312e2b"));
+        btn.setTextFill(Color.web(ui().getBackground()));
         btn.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         btn.setCursor(Cursor.HAND);
-        btn.setStyle(
-                "-fx-background-color: #f0d9b5;" +
-                        "-fx-background-radius: 8;"
-        );
+        String btnBg = ui().getButtonBackground();
+        btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;");
         btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #f0d9b5; -fx-background-radius: 8;"));
+        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;"));
 
         btn.setOnAction(event -> startGameWithTime(timeInSeconds));
         return btn;
     }
+    private Button createThemeButton(BoardTheme theme) {
+        Button btn = new Button(theme.getDisplayName());
+        btn.setPrefSize(90, 36);
+        btn.setTextFill(Color.web(ui().getBackground()));
+        btn.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        btn.setCursor(Cursor.HAND);
+        String btnBg = ui().getButtonBackground();
+        btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;");
+        btn.setOnAction(e -> {
+            selectedThemeId = theme.getId();
+            drawBoard(null, null);
+        });
+        return btn;
+    }
     private void startGameWithTime(int timeInSeconds) {
-
+        drawBoard(null, null);
         appRoot.getChildren().remove(startMenuOverlay);
         startMenuOverlay = null;
 
@@ -152,7 +181,7 @@ public class ChessApp extends Application{
     }
     private Label createTimerLabel(String initialText) {
         Label label = new Label(initialText);
-        label.setTextFill(Color.WHITE);
+        label.setTextFill(Color.web(ui().getTextPrimary()));
         label.setFont(new Font("Arial", 20));
         return label;
     }
@@ -207,12 +236,12 @@ public class ChessApp extends Application{
         }
 
         Label badge = new Label(getGameOverBadge(reason));
-        badge.setTextFill(Color.web("#312e2b"));
+        badge.setTextFill(Color.web(ui().getBackground()));
         badge.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         badge.setStyle("-fx-background-color: " + getGameOverAccent() + "; -fx-padding: 5 12; -fx-background-radius: 14;");
 
         Label title = new Label(getGameOverTitle());
-        title.setTextFill(Color.WHITE);
+        title.setTextFill(Color.web(ui().getTextPrimary()));
         title.setFont(Font.font("Arial", FontWeight.BOLD, 26));
 
         Label message = new Label(getGameOverMessage());
@@ -223,7 +252,7 @@ public class ChessApp extends Application{
         message.setAlignment(Pos.CENTER);
 
         Button restartButton = new Button("Zagraj ponownie");
-        restartButton.setTextFill(Color.web("#312e2b"));
+        restartButton.setTextFill(Color.web(ui().getBackground()));
         restartButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         restartButton.setCursor(Cursor.HAND);
         restartButton.setStyle(
@@ -252,13 +281,12 @@ public class ChessApp extends Application{
         content.setPadding(new Insets(24, 32, 20, 32));
         content.setMaxWidth(340);
         content.setStyle(
-                "-fx-background-color: #312e2b;" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: " + getGameOverAccent() + ";" +
-                "-fx-border-width: 2;" +
-                "-fx-border-radius: 12;"
+                "-fx-background-color: " + ui().getBackground() + ";" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-color: " + getGameOverAccent() + ";" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-radius: 12;"
         );
-
         gameOverOverlay = new StackPane(content);
         gameOverOverlay.setAlignment(Pos.CENTER);
         gameOverOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.45);");
@@ -269,7 +297,7 @@ public class ChessApp extends Application{
 
         appRoot.getChildren().remove(gameOverOverlay);
         gameOverOverlay = null;
-
+        selectedThemeId = appConfig.getDefaultBoardThemeId();
         gameManager = new GameManager();
         controller = new ChessController(gameManager, this);
 
@@ -312,15 +340,17 @@ public class ChessApp extends Application{
         } else if (gameManager.getStatus() == GameManager.GameStatus.BLACK_WINS) {
             return "#b58863";
         }
-        return "#baca44";
+        return ui().getAccent();
     }
+
     public void drawBoard(Square selectedSquare, List<Move> legalMoves){
         boardGrid.getChildren().clear();
         Board board = gameManager.getBoard();
+        BoardTheme theme = appConfig.getThemeById(selectedThemeId);
         for (int i = 0; i < 8; i++) {
             Label rankLabel = new Label(String.valueOf(8 - i));
             rankLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-            rankLabel.setTextFill(Color.web("#BABABA"));
+            rankLabel.setTextFill(Color.web(ui().getCoordinate()));
             rankLabel.setPrefSize(OFFSET_SIZE, TILE_SIZE);
             rankLabel.setAlignment(Pos.CENTER);
             boardGrid.add(rankLabel, 0, i);
@@ -333,14 +363,14 @@ public class ChessApp extends Application{
                 int visualCol = col + 1;
                 Rectangle background = new Rectangle(TILE_SIZE, TILE_SIZE);
                 boolean isLightSquare = (row + col) % 2 == 0;
-                background.setFill(isLightSquare ? Color.web("#F0D9B5") : Color.web("#B58863"));
+                background.setFill(isLightSquare ? Color.web(theme.getLightSquare()) : Color.web(theme.getDarkSquare()));
                 tile.getChildren().add(background);
 
                 //mixing color with green to highlight a square
 
                 if (selectedSquare != null && selectedSquare.getRow() == row && selectedSquare.getCol() == col){
                     Rectangle highlight = new Rectangle(TILE_SIZE, TILE_SIZE);
-                    highlight.setFill(Color.web("#BACA44", 0.5));  //0.5 is alpha,parameter of transparency
+                    highlight.setFill(Color.web(ui().getHighlight(), 0.5)); //0.5 is alpha,parameter of transparency
                     tile.getChildren().add(highlight);
                 }
 
@@ -383,7 +413,7 @@ public class ChessApp extends Application{
         for (int i = 0; i < 8; i++) {
             Label fileLabel = new Label(files[i]);
             fileLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-            fileLabel.setTextFill(Color.web("#BABABA"));
+            fileLabel.setTextFill(Color.web(ui().getCoordinate()));
             fileLabel.setPrefSize(TILE_SIZE, OFFSET_SIZE);
             fileLabel.setAlignment(Pos.CENTER);
             boardGrid.add(fileLabel, i + 1, 8);
@@ -391,10 +421,10 @@ public class ChessApp extends Application{
     }
 
     private ImageView getPieceImageView(Piece piece){
-        String colorChar = piece.getColor() == PieceColor.WHITE ? "w" : "b";
-        String pieceChar = String.valueOf(piece.getType().getSymbol()).toLowerCase();
-        String fileName = colorChar + pieceChar + ".png";
-        URL imageUrl = getClass().getResource("/assets/Pieces_images1/" + fileName);
+        String path = appConfig.getPieceImagePath(piece);
+        if (path == null)
+            return null;
+        URL imageUrl = getClass().getResource(path);
         if (imageUrl == null)
             return null;
         Image image = new Image(imageUrl.toExternalForm());
@@ -445,7 +475,7 @@ public class ChessApp extends Application{
         HBox box = new HBox(15, qImg, rImg, bImg, nImg);
         box.setAlignment(Pos.CENTER);
         Label titleLabel = new Label("Wybierz figurę do promocji");
-        titleLabel.setTextFill(Color.WHITE);
+        titleLabel.setTextFill(Color.web(ui().getTextPrimary()));
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         VBox dialogContent = new VBox(20, titleLabel, box);
@@ -454,13 +484,12 @@ public class ChessApp extends Application{
         dialogContent.setMaxSize(400, 150);
 
         dialogContent.setStyle(
-                "-fx-background-color: #312e2b;" +
+                "-fx-background-color: " + ui().getBackground() + ";" +
                         "-fx-background-radius: 12;" +
-                        "-fx-border-color: #baca44;" +
+                        "-fx-border-color: " + ui().getAccent() + ";" +
                         "-fx-border-width: 2;" +
                         "-fx-border-radius: 12;"
         );
-
         promotionOverlay = new StackPane(dialogContent);
         promotionOverlay.setAlignment(Pos.CENTER);
         promotionOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.6);");
@@ -482,5 +511,8 @@ public class ChessApp extends Application{
                 gameManager.getCapturedBlackPieces(),
                 gameManager.getMaterialAdvantage(PieceColor.WHITE)
         );
+    }
+    private UiConfig ui() {
+        return appConfig.getUi();
     }
 }

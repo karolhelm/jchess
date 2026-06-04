@@ -1,0 +1,31 @@
+{"pieces": {
+    "imageBasePath": "/assets/Pieces_images1/",
+    "images": {
+      "white_pawn": "wp.png",
+      "white_knight": "wn.png",
+      "white_bishop": "wb.png",
+      "white_rook": "wr.png",
+      "white_queen": "wq.png",
+      "white_king": "wk.png",
+      "black_pawn": "bp.png",
+      "black_knight": "bn.png",
+      "black_bishop": "bb.png",
+      "black_rook": "br.png",
+      "black_queen": "bq.png",
+      "black_king": "bk.png"
+    }
+  },
+  "boardThemes": [
+    { "id": "classic", "displayName": "Klasyczny", "lightSquare": "#F0D9B5", "darkSquare": "#B58863" },
+    { "id": "green",   "displayName": "Zielony",   "lightSquare": "#EEEED2", "darkSquare": "#769656" },
+    { "id": "blue",    "displayName": "Niebieski", "lightSquare": "#DEE3E6", "darkSquare": "#8CA2AD" }
+  ],
+  "defaultBoardThemeId": "classic",
+  "ui": {
+    "background": "#312e2b",
+    "accent": "#baca44",
+    "highlight": "#BACA44",
+    "coordinate": "#BABABA",
+    "buttonBackground": "#f0d9b5",
+    "textPrimary": "#FFFFFF"
+  }}
