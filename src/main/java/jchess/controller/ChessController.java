@@ -57,7 +57,7 @@ public class ChessController {
 
                 if (moveExecutor != null) {
                     Piece movingPiece = moveExecutor.getPieceMoved();
-                    boolean isPawn = movingPiece.getClass().getSimpleName().equals("Pawn");
+                    boolean isPawn = (movingPiece.getType() == PieceType.PAWN);
                     int targetRow = moveExecutor.getEnd().getRow();
                     boolean isPromotion = isPawn && (targetRow == 0 || targetRow == 7);
                     if (isPromotion) {
@@ -67,6 +67,7 @@ public class ChessController {
                             gameManager.playMove(finalMove);
                             selectedSquare = null;
                             view.drawBoard(null, null);
+                            view.updateGraveyards();
                             showGameOverIfNeeded();
                         });
                         return;
@@ -77,6 +78,7 @@ public class ChessController {
 
                 selectedSquare = null;
                 view.drawBoard(null, null);
+                view.updateGraveyards();
                 showGameOverIfNeeded();
             }
         }

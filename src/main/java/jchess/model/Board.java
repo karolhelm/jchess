@@ -5,32 +5,6 @@ public class Board {
     private Move lastMove;
     public Board(){
         this.grid = new Piece[8][8];
-        initializeBoard();
-    }
-
-    private void initializeBoard(){
-        grid[0][0] = new Rook(Piece.Color.BLACK);
-        grid[0][7] = new Rook(Piece.Color.BLACK);
-        grid[0][1] = new Knight(Piece.Color.BLACK);
-        grid[0][6] = new Knight(Piece.Color.BLACK);
-        grid[0][2] = new Bishop(Piece.Color.BLACK);
-        grid[0][5] = new Bishop(Piece.Color.BLACK);
-        grid[0][3] = new Queen(Piece.Color.BLACK);
-        grid[0][4] = new King(Piece.Color.BLACK);
-        for(int col = 0; col < 8; col++){
-            grid[1][col] = new Pawn(Piece.Color.BLACK);
-        }
-        grid[7][0] = new Rook(Piece.Color.WHITE);
-        grid[7][7] = new Rook(Piece.Color.WHITE);
-        grid[7][1] = new Knight(Piece.Color.WHITE);
-        grid[7][6] = new Knight(Piece.Color.WHITE);
-        grid[7][2] = new Bishop(Piece.Color.WHITE);
-        grid[7][5] = new Bishop(Piece.Color.WHITE);
-        grid[7][3] = new Queen(Piece.Color.WHITE);
-        grid[7][4] = new King(Piece.Color.WHITE);
-        for(int col = 0; col < 8; col++){
-            grid[6][col] = new Pawn(Piece.Color.WHITE);
-        }
     }
 
     public Piece getPiece(Square square){
@@ -76,14 +50,15 @@ public class Board {
                 int capturedPawnCol = end.getCol();
                 grid[capturedPawnRow][capturedPawnCol] = null;
             }
-            if (movingPiece instanceof Pawn) {
+            if (movingPiece.getType() ==PieceType.PAWN) {
                 int endRow = end.getRow();
                 int endCol = end.getCol();
                 if (endRow == 0 || endRow == 7) {
                     if (move.getPromotionPiece() != null) {
                         grid[endRow][endCol] = move.getPromotionPiece();
                     } else {
-                        grid[endRow][endCol] = new Queen(movingPiece.getColor());
+                        Piece defaultQueen = (movingPiece.getColor() == PieceColor.WHITE) ? Piece.WHITE_QUEEN : Piece.BLACK_QUEEN;
+                        grid[endRow][end.getCol()] = defaultQueen;
                     }
                 }
             }

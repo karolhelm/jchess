@@ -8,7 +8,6 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -26,7 +25,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import jchess.controller.ChessController;
 import jchess.model.*;
-import javafx.scene.control.Dialog;
 import javafx.scene.Cursor;
 import javafx.geometry.Pos;
 import java.net.URL;
@@ -49,6 +47,8 @@ public class ChessApp extends Application{
     private Label whiteTimerLabel;
     private Label blackTimerLabel;
     private Timeline timeline;
+    private GraveyardView blackGraveyard;
+    private GraveyardView whiteGraveyard;
     @Override
     public void start(Stage primaryStage){
         gameManager = new GameManager();
@@ -61,15 +61,20 @@ public class ChessApp extends Application{
         root.setCenter(boardGrid);
         blackTimerLabel = createTimerLabel("Black: --:--");
         whiteTimerLabel = createTimerLabel("White: --:--");
-        HBox topBar = new HBox(blackTimerLabel);
+        blackGraveyard = new GraveyardView(this::getPieceImageView);
+        whiteGraveyard = new GraveyardView(this::getPieceImageView);
+
+        VBox topBar = new VBox(5, blackGraveyard, blackTimerLabel);
         topBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
-        HBox bottomBar = new HBox(whiteTimerLabel);
+
+        VBox bottomBar = new VBox(5, whiteTimerLabel, whiteGraveyard);
         bottomBar.setStyle("-fx-background-color: #312e2b; -fx-padding: 10; -fx-alignment: center;");
+
         root.setTop(topBar);
         root.setBottom(bottomBar);
         showStartMenu();
         drawBoard(null, null);        //basic inizalization //
-        Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE, (TILE_SIZE * 8) + OFFSET_SIZE + 100);
+        Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE, (TILE_SIZE * 8) + OFFSET_SIZE + 140);
         primaryStage.setTitle("JChess");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
@@ -153,17 +158,17 @@ public class ChessApp extends Application{
     }
     private void startTimer() {
         timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            if (gameManager.getCurrentTurn() == Piece.Color.WHITE) {
+            if (gameManager.getCurrentTurn() == PieceColor.WHITE) {
                 whiteTimeLeft--;
                 whiteTimerLabel.setText("White: " + formatTime(whiteTimeLeft));
                 if (whiteTimeLeft <= 0){
-                    endGameByTime(Piece.Color.BLACK);
+                    endGameByTime(PieceColor.BLACK);
                 }
             }else{
                 blackTimeLeft--;
                 blackTimerLabel.setText("Black: " + formatTime(blackTimeLeft));
                 if (blackTimeLeft <= 0){
-                    endGameByTime(Piece.Color.WHITE);
+                    endGameByTime(PieceColor.WHITE);
                 }
             }
         }));
@@ -175,11 +180,11 @@ public class ChessApp extends Application{
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d", minutes, seconds);
     }
-    private void endGameByTime(Piece.Color winner) {
+    private void endGameByTime(PieceColor winner) {
         timeline.stop();
 
       //ending game by changing game status
-        if (winner == Piece.Color.WHITE) {
+        if (winner == PieceColor.WHITE) {
             gameManager.setStatus(GameManager.GameStatus.WHITE_WINS);
         } else {
             gameManager.setStatus(GameManager.GameStatus.BLACK_WINS);
@@ -386,28 +391,12 @@ public class ChessApp extends Application{
     }
 
     private ImageView getPieceImageView(Piece piece){
-        String colorChar = piece.getColor() == Piece.Color.WHITE ? "w" : "b";
-        String pieceChar = piece.getClass().getSimpleName();
-        if(Objects.equals(pieceChar, "King"))
-            pieceChar="k";
-        else if(Objects.equals(pieceChar, "Knight"))
-            pieceChar="n";
-        else if(Objects.equals(pieceChar, "Rook"))
-            pieceChar="r";
-        else if(Objects.equals(pieceChar, "Queen"))
-            pieceChar="q";
-        else if(Objects.equals(pieceChar, "Bishop"))
-            pieceChar="b";                  //finding the file with the graphic
-        else if(Objects.equals(pieceChar, "Pawn"))
-            pieceChar="p";
-
+        String colorChar = piece.getColor() == PieceColor.WHITE ? "w" : "b";
+        String pieceChar = String.valueOf(piece.getType().getSymbol()).toLowerCase();
         String fileName = colorChar + pieceChar + ".png";
         URL imageUrl = getClass().getResource("/assets/Pieces_images1/" + fileName);
-
         if (imageUrl == null)
             return null;
-
-
         Image image = new Image(imageUrl.toExternalForm());
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(TILE_SIZE - 10);
@@ -415,15 +404,15 @@ public class ChessApp extends Application{
         imageView.setPreserveRatio(true);
         return imageView;
     }
-    public void showPromotionDialog(Piece.Color color, Consumer<Piece> onPieceSelected) {
+    public void showPromotionDialog(PieceColor color, Consumer<Piece> onPieceSelected) {
         if (promotionOverlay != null) {
             return;
         }
 
-        Piece queen = new Queen(color);
-        Piece rook = new Rook(color);
-        Piece bishop = new Bishop(color);
-        Piece knight = new Knight(color); //setting images
+        Piece queen = Piece.fromFenSymbol(color == PieceColor.WHITE ? 'Q' : 'q');
+        Piece rook = Piece.fromFenSymbol(color == PieceColor.WHITE ? 'R' : 'r');
+        Piece bishop = Piece.fromFenSymbol(color == PieceColor.WHITE ? 'B' : 'b');
+        Piece knight = Piece.fromFenSymbol(color == PieceColor.WHITE ? 'N' : 'n'); //setting images
 
         ImageView qImg = getPieceImageView(queen);
         ImageView rImg = getPieceImageView(rook);
@@ -482,5 +471,16 @@ public class ChessApp extends Application{
         appRoot.getChildren().remove(promotionOverlay);
         promotionOverlay = null;
         onPieceSelected.accept(chosenPiece);
+    }
+    public void updateGraveyards(){
+        blackGraveyard.update(
+                gameManager.getCapturedWhitePieces(),
+                gameManager.getMaterialAdvantage(PieceColor.BLACK)
+        );
+
+        whiteGraveyard.update(
+                gameManager.getCapturedBlackPieces(),
+                gameManager.getMaterialAdvantage(PieceColor.WHITE)
+        );
     }
 }
