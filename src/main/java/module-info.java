@@ -8,6 +8,6 @@ module jchess {
     exports jchess.controller;
     exports jchess.model;
     exports jchess.view;
-
+    exports jchess.notation;
     opens jchess.config to com.fasterxml.jackson.databind;
 }

@@ -254,6 +254,9 @@ public class GameManager {
         }
         return false;
     }
+    public boolean isInCheck(PieceColor color) {
+        return isKingInCheck(color);
+    }
 
     // checkmate and stalemate
     private void updateGameStatus() {

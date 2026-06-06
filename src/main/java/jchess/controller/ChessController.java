@@ -2,7 +2,7 @@ package jchess.controller;
 
 import jchess.model.*;
 import jchess.view.ChessApp;
-
+import jchess.notation.AlgebraicNotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +64,7 @@ public class ChessController {
                         final Move finalMove = moveExecutor;  //lambda for handling promotion
                         view.showPromotionDialog(gameManager.getCurrentTurn(), chosenPiece -> {
                             finalMove.setPromotionPiece(chosenPiece);
-                            gameManager.playMove(finalMove);
+                            executeMove(finalMove);
                             selectedSquare = null;
                             view.drawBoard(null, null);
                             view.updateGraveyards();
@@ -72,7 +72,7 @@ public class ChessController {
                         });
                         return;
                     } else
-                        gameManager.playMove(moveExecutor);
+                        executeMove(moveExecutor);
                 }
 
 
@@ -83,7 +83,13 @@ public class ChessController {
             }
         }
     }
-
+    private void executeMove(Move move) { //playMove with notation handling
+        PieceColor mover = move.getPieceMoved().getColor(); //info who played so we know if it is new row or black's moves
+        String base = AlgebraicNotation.formatBase(move, gameManager);
+        gameManager.playMove(move);
+        String san = AlgebraicNotation.withCheckSuffix(base, gameManager); //suffix
+        view.recordMove(san, mover);
+    }
     private void showGameOverIfNeeded() {
         if (gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
             view.showGameOverDialog();

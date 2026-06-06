@@ -37,7 +37,7 @@ public class ChessApp extends Application {
     private PieceImageFactory pieceImageFactory;
     private GameTimer gameTimer;
     private String selectedThemeId;
-
+    private MoveHistoryView moveHistoryView;
     @Override
     public void start(Stage primaryStage) {
         loadConfig();
@@ -57,7 +57,8 @@ public class ChessApp extends Application {
         BorderPane root = new BorderPane();
         appRoot = new StackPane(root);
         root.setCenter(boardView);
-
+        moveHistoryView = new MoveHistoryView(ui());
+        root.setRight(moveHistoryView);
         blackGraveyard = new GraveyardView(pieceImageFactory::create);
         whiteGraveyard = new GraveyardView(pieceImageFactory::create);
         root.setTop(createTopBar());
@@ -66,7 +67,7 @@ public class ChessApp extends Application {
         showStartMenu();
         drawBoard(null, null);
 
-        Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE, (TILE_SIZE * 8) + OFFSET_SIZE + 140);
+        Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE + 200, (TILE_SIZE * 8) + OFFSET_SIZE + 140);
         primaryStage.setTitle("JChess");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
@@ -153,6 +154,7 @@ public class ChessApp extends Application {
 
         selectedThemeId = appConfig.getDefaultBoardThemeId();
         createGameSession();
+        clearMoveHistory();
         drawBoard(null, null);
         updateGraveyards();
         showStartMenu();
@@ -194,7 +196,12 @@ public class ChessApp extends Application {
                 gameManager.getMaterialAdvantage(PieceColor.WHITE)
         );
     }
-
+    public void recordMove(String san, PieceColor mover) {
+        moveHistoryView.addMove(san, mover);
+    }
+    public void clearMoveHistory() {
+        moveHistoryView.clear();
+    }
     private UiConfig ui() {
         return appConfig.getUi();
     }
