@@ -12,7 +12,7 @@ public class GameManager {
     private boolean blackCastleQueenside;
     private Square enPassantTarget;
     public enum GameStatus {
-        ACTIVE, WHITE_WINS, BLACK_WINS, STALEMATE
+        ACTIVE, WHITE_WINS, BLACK_WINS, STALEMATE, ENDED
     }
 
     private GameStatus status = GameStatus.ACTIVE;
@@ -20,7 +20,6 @@ public class GameManager {
     public GameManager(){
         this.board = new Board();
         FenParser.loadFen(this, FenParser.STARTING_FEN);
-        this.currentTurn = PieceColor.WHITE;
     }
 
     public Board getBoard() {
@@ -43,6 +42,12 @@ public class GameManager {
     private List<Piece> capturedBlackPieces = new ArrayList<>();  //graveyard variables
     private int whiteMaterial = 39;
     private int blackMaterial = 39;
+    private int halfMoveClock = 0;
+    private int fullMoveNumber = 1;
+    public int getHalfMoveClock() { return halfMoveClock; }
+    public int getFullMoveNumber() { return fullMoveNumber; }
+    public void setHalfMoveClock(int value) { halfMoveClock = value; }
+    public void setFullMoveNumber(int value) { fullMoveNumber = value; }
     public List<Piece> getCapturedBlackPieces(){
         return capturedBlackPieces;
     }
@@ -53,7 +58,32 @@ public class GameManager {
     public void setWhiteCastleQueenside(boolean v) { whiteCastleQueenside = v; }
     public void setBlackCastleKingside(boolean v) { blackCastleKingside = v; }
     public void setBlackCastleQueenside(boolean v) { blackCastleQueenside = v; }
+    public boolean isWhiteCastleKingside() { return whiteCastleKingside; }
+    public boolean isWhiteCastleQueenside() { return whiteCastleQueenside; }
+    public boolean isBlackCastleKingside() { return blackCastleKingside; }
+    public boolean isBlackCastleQueenside() { return blackCastleQueenside; }
+    public Square getEnPassantTarget() { return enPassantTarget; }
     public void setEnPassantTarget(Square s) { enPassantTarget = s; }
+
+    public void resetGraveyardFromBoard() {
+        capturedWhitePieces.clear();
+        capturedBlackPieces.clear();
+        whiteMaterial = countMaterialOnBoard(PieceColor.WHITE);
+        blackMaterial = countMaterialOnBoard(PieceColor.BLACK);
+    }
+
+    private int countMaterialOnBoard(PieceColor color) {
+        int total = 0;
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = board.getPiece(new Square(row, col));
+                if (piece != null && piece.getColor() == color) {
+                    total += piece.getValue();
+                }
+            }
+        }
+        return total;
+    }
 
     public void playMove(Move move) {
         if (status != GameStatus.ACTIVE){
@@ -87,6 +117,16 @@ public class GameManager {
 
         board.movePiece(move);
         board.setLastMove(move);
+        boolean pawnMove = move.getPieceMoved().getType() == PieceType.PAWN;
+        boolean capture = move.isCapture() || move.isEnPassant();
+        if (pawnMove || capture) {
+            halfMoveClock = 0;
+        } else {
+            halfMoveClock++;
+        }
+        if (move.getPieceMoved().getColor() == PieceColor.BLACK) {
+            fullMoveNumber++;
+        }
         switchTurn();
         updateGameStatus();
     }
