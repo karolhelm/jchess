@@ -89,6 +89,9 @@ public class GameOverDialog extends StackPane {
     }
 
     private String getGameOverBadge() {
+        if (gameManager.getStatus() == GameManager.GameStatus.ENDED) {
+            return "END";
+        }
         if (TIME_UP_REASON.equals(reason)) {
             return "TIME";
         } else if (gameManager.getStatus() == GameManager.GameStatus.STALEMATE) {
@@ -98,6 +101,9 @@ public class GameOverDialog extends StackPane {
     }
 
     private String getGameOverTitle() {
+        if (gameManager.getStatus() == GameManager.GameStatus.ENDED) {
+            return "End of game";
+        }
         if (gameManager.getStatus() == GameManager.GameStatus.WHITE_WINS) {
             return "White wins";
         } else if (gameManager.getStatus() == GameManager.GameStatus.BLACK_WINS) {
@@ -107,6 +113,9 @@ public class GameOverDialog extends StackPane {
     }
 
     private String getGameOverMessage() {
+        if (gameManager.getStatus() == GameManager.GameStatus.ENDED) {
+            return "Game was ended.";
+        }
         if (gameManager.getStatus() == GameManager.GameStatus.WHITE_WINS) {
             return "White has won the game.";
         } else if (gameManager.getStatus() == GameManager.GameStatus.BLACK_WINS) {

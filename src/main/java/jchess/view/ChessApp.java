@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import jchess.config.AppConfig;
@@ -16,7 +17,7 @@ import jchess.model.Move;
 import jchess.model.Piece;
 import jchess.model.PieceColor;
 import jchess.model.Square;
-
+import jchess.model.FenParser;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -58,7 +59,13 @@ public class ChessApp extends Application {
         appRoot = new StackPane(root);
         root.setCenter(boardView);
         moveHistoryView = new MoveHistoryView(ui());
-        root.setRight(moveHistoryView);
+        EndGameButtonView endGameButtonView = new EndGameButtonView(ui(), this::endGameManually);
+        FenCopyButtonView fenCopyButtonView = new FenCopyButtonView(ui(), () -> FenParser.toFen(gameManager));
+        VBox rightSide = new VBox(moveHistoryView, endGameButtonView, fenCopyButtonView);
+        rightSide.setPrefWidth(200);
+        rightSide.setStyle("-fx-background-color: " + ui().getBackground() + ";");
+        VBox.setVgrow(moveHistoryView, Priority.ALWAYS);
+        root.setRight(rightSide);
         blackGraveyard = new GraveyardView(pieceImageFactory::create);
         whiteGraveyard = new GraveyardView(pieceImageFactory::create);
         root.setTop(createTopBar());
@@ -104,7 +111,7 @@ public class ChessApp extends Application {
             return;
         }
 
-        startMenuOverlay = new StartMenuView(appConfig, this::selectTheme, this::startGameWithTime);
+        startMenuOverlay = new StartMenuView(appConfig, this::selectTheme, this::startGameWithTime, this::loadFenPosition);
         appRoot.getChildren().add(startMenuOverlay);
     }
 
@@ -196,8 +203,25 @@ public class ChessApp extends Application {
                 gameManager.getMaterialAdvantage(PieceColor.WHITE)
         );
     }
+    private void loadFenPosition(String fen) {
+        FenParser.loadFen(gameManager, fen);
+        clearMoveHistory();
+        drawBoard(null, null);
+        updateGraveyards();
+        moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
+    }
+
+    private void endGameManually() {
+        if (startMenuOverlay != null || gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
+            return;
+        }
+        gameManager.setStatus(GameManager.GameStatus.ENDED);
+        showGameOverDialog();
+    }
+
     public void recordMove(String san, PieceColor mover) {
         moveHistoryView.addMove(san, mover);
+        moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
     }
     public void clearMoveHistory() {
         moveHistoryView.clear();

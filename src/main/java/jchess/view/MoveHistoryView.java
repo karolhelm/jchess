@@ -12,15 +12,26 @@ import javafx.scene.text.FontWeight;
 import jchess.config.UiConfig;
 import jchess.model.PieceColor;
 public class MoveHistoryView extends VBox {
+    private static final int FIFTY_MOVE_LIMIT = 50;
+
     private final ObservableList<String> items = FXCollections.observableArrayList();
     private final ListView<String> listView;
+    private final Label halfMoveLabel;
     private int moveNumber = 1;
+
     public MoveHistoryView(UiConfig ui) {
         setSpacing(8);
         setPadding(new Insets(10));
         setMinWidth(180);
         setPrefWidth(200);
+        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         setStyle("-fx-background-color: " + ui.getBackground() + ";");
+
+        halfMoveLabel = new Label();
+        halfMoveLabel.setTextFill(Color.web(ui.getTextPrimary()));
+        halfMoveLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        setHalfMoveClock(0);
+
         Label title = new Label("Historia partii");
         title.setTextFill(Color.web(ui.getAccent()));
         title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
@@ -33,8 +44,12 @@ public class MoveHistoryView extends VBox {
                         "-fx-faint-focus-color: transparent;"
         );
         listView.setFixedCellSize(22);
-        getChildren().addAll(title, listView);
+        getChildren().addAll(halfMoveLabel, title, listView);
         VBox.setVgrow(listView, Priority.ALWAYS);
+    }
+
+    public void setHalfMoveClock(int halfMoves) {
+        halfMoveLabel.setText("Półruchy bez postępu: " + halfMoves + " / " + FIFTY_MOVE_LIMIT);
     }
     public void addMove(String san, PieceColor mover) {
         if (mover == PieceColor.WHITE) {
@@ -50,5 +65,6 @@ public class MoveHistoryView extends VBox {
     public void clear() {
         items.clear();
         moveNumber = 1;
+        setHalfMoveClock(0);
     }
 }

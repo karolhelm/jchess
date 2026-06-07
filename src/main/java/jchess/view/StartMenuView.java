@@ -26,7 +26,8 @@ public class StartMenuView extends StackPane {
     public StartMenuView(
             AppConfig appConfig,
             Consumer<String> themeSelectedHandler,
-            Consumer<Integer> timeSelectedHandler
+            Consumer<Integer> timeSelectedHandler,
+            Consumer<String> fenLoadHandler
     ) {
         this.appConfig = appConfig;
         this.ui = appConfig.getUi();
@@ -36,10 +37,10 @@ public class StartMenuView extends StackPane {
         setAlignment(Pos.CENTER);
         setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
         setPickOnBounds(true);
-        getChildren().add(createContent());
+        getChildren().add(createContent(fenLoadHandler));
     }
 
-    private VBox createContent() {
+    private VBox createContent(Consumer<String> fenLoadHandler) {
         Label title = new Label("JChess");
         title.setTextFill(Color.WHITE);
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
@@ -53,6 +54,8 @@ public class StartMenuView extends StackPane {
         for (BoardTheme theme : appConfig.getBoardThemes()) {
             themeButtons.getChildren().add(createThemeButton(theme));
         }
+
+        FenLoadView fenLoadView = new FenLoadView(ui, fenLoadHandler);
 
         Label subtitle = new Label("Wybierz motyw i czas gry");
         subtitle.setTextFill(Color.web(ui.getAccent()));
@@ -69,10 +72,19 @@ public class StartMenuView extends StackPane {
         HBox bottomButtons = new HBox(15, btn5Min, btn10Min);
         bottomButtons.setAlignment(Pos.CENTER);
 
-        VBox content = new VBox(15, title, themeSubtitle, themeButtons, subtitle, topButtons, bottomButtons);
+        VBox content = new VBox(
+                15,
+                title,
+                themeSubtitle,
+                themeButtons,
+                fenLoadView,
+                subtitle,
+                topButtons,
+                bottomButtons
+        );
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(30, 40, 30, 40));
-        content.setMaxSize(380, 320);
+        content.setMaxSize(380, 420);
         content.setStyle(
                 "-fx-background-color: " + ui.getBackground() + ";" +
                         "-fx-background-radius: 12;" +
