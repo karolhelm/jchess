@@ -120,12 +120,12 @@ public class ChessApp extends Application {
         drawBoard(null, null);
     }
 
-    private void startGameWithTime(int timeInSeconds) {
+    private void startGameWithTime(int timeInSeconds, boolean isBot) {
+        controller.setBotMode(isBot);
         drawBoard(null, null);
         removeStartMenuOverlay();
         gameTimer.start(timeInSeconds);
     }
-
     private void removeStartMenuOverlay() {
         appRoot.getChildren().remove(startMenuOverlay);
         startMenuOverlay = null;
@@ -209,6 +209,7 @@ public class ChessApp extends Application {
         drawBoard(null, null);
         updateGraveyards();
         moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
+        removeStartMenuOverlay();
     }
 
     private void endGameManually() {

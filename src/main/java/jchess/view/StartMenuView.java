@@ -15,49 +15,76 @@ import jchess.config.AppConfig;
 import jchess.config.BoardTheme;
 import jchess.config.UiConfig;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class StartMenuView extends StackPane {
     private final AppConfig appConfig;
     private final UiConfig ui;
     private final Consumer<String> themeSelectedHandler;
-    private final Consumer<Integer> timeSelectedHandler;
+    private final BiConsumer<Integer, Boolean> timeSelectedHandler; // Zmienione na BiConsumer (czas, czyBot)
+    private final Consumer<String> fenLoadHandler;
+
+    private boolean isBotMode = false;
 
     public StartMenuView(
             AppConfig appConfig,
             Consumer<String> themeSelectedHandler,
-            Consumer<Integer> timeSelectedHandler,
+            BiConsumer<Integer, Boolean> timeSelectedHandler,
             Consumer<String> fenLoadHandler
     ) {
         this.appConfig = appConfig;
         this.ui = appConfig.getUi();
         this.themeSelectedHandler = themeSelectedHandler;
         this.timeSelectedHandler = timeSelectedHandler;
+        this.fenLoadHandler = fenLoadHandler;
 
         setAlignment(Pos.CENTER);
         setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
         setPickOnBounds(true);
-        getChildren().add(createContent(fenLoadHandler));
+
+        showMainMenu();
     }
 
-    private VBox createContent(Consumer<String> fenLoadHandler) {
+    private void showMainMenu() {
+        getChildren().clear();
+
         Label title = new Label("JChess");
         title.setTextFill(Color.WHITE);
         title.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+        VBox.setMargin(title, new Insets(0, 0, 20, 0));
 
-        Label themeSubtitle = new Label("Motyw planszy");
-        themeSubtitle.setTextFill(Color.web(ui.getAccent()));
-        themeSubtitle.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        Button btnFriend = createMenuButton("Gra ze znajomym");
+        btnFriend.setOnAction(e -> {
+            isBotMode = false;
+            showTimeSelection();
+        });
 
-        HBox themeButtons = new HBox(10);
-        themeButtons.setAlignment(Pos.CENTER);
-        for (BoardTheme theme : appConfig.getBoardThemes()) {
-            themeButtons.getChildren().add(createThemeButton(theme));
-        }
+        Button btnBot = createMenuButton("Gra z botem");
+        btnBot.setOnAction(e -> {
+            isBotMode = true;
+            showTimeSelection();
+        });
 
-        FenLoadView fenLoadView = new FenLoadView(ui, fenLoadHandler);
+        Button btnFen = createMenuButton("Wczytaj pozycję FEN");
+        btnFen.setOnAction(e -> showFenLoad());
 
-        Label subtitle = new Label("Wybierz motyw i czas gry");
+        Button btnSettings = createMenuButton("Ustawienia");
+        btnSettings.setOnAction(e -> showSettings());
+
+        VBox content = createContainer();
+        content.getChildren().addAll(title, btnFriend, btnBot, btnFen, btnSettings);
+        getChildren().add(content);
+    }
+
+    private void showTimeSelection() {
+        getChildren().clear();
+
+        Label title = new Label(isBotMode ? "Gra z botem" : "Gra ze znajomym");
+        title.setTextFill(Color.WHITE);
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+
+        Label subtitle = new Label("Wybierz czas gry");
         subtitle.setTextFill(Color.web(ui.getAccent()));
         subtitle.setFont(Font.font("Arial", FontWeight.BOLD, 16));
 
@@ -72,16 +99,61 @@ public class StartMenuView extends StackPane {
         HBox bottomButtons = new HBox(15, btn5Min, btn10Min);
         bottomButtons.setAlignment(Pos.CENTER);
 
-        VBox content = new VBox(
-                15,
-                title,
-                themeSubtitle,
-                themeButtons,
-                fenLoadView,
-                subtitle,
-                topButtons,
-                bottomButtons
-        );
+        Button btnBack = createMenuButton("Wróć");
+        btnBack.setOnAction(e -> showMainMenu());
+        VBox.setMargin(btnBack, new Insets(20, 0, 0, 0));
+
+        VBox content = createContainer();
+        content.getChildren().addAll(title, subtitle, topButtons, bottomButtons, btnBack);
+        getChildren().add(content);
+    }
+
+    private void showSettings() {
+        getChildren().clear();
+
+        Label title = new Label("Ustawienia");
+        title.setTextFill(Color.WHITE);
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 28));
+
+        Label themeSubtitle = new Label("Motyw planszy");
+        themeSubtitle.setTextFill(Color.web(ui.getAccent()));
+        themeSubtitle.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        HBox themeButtons = new HBox(10);
+        themeButtons.setAlignment(Pos.CENTER);
+        for (BoardTheme theme : appConfig.getBoardThemes()) {
+            themeButtons.getChildren().add(createThemeButton(theme));
+        }
+
+        Button btnBack = createMenuButton("Wróć");
+        btnBack.setOnAction(e -> showMainMenu());
+        VBox.setMargin(btnBack, new Insets(20, 0, 0, 0));
+
+        VBox content = createContainer();
+        content.getChildren().addAll(title, themeSubtitle, themeButtons, btnBack);
+        getChildren().add(content);
+    }
+
+    private void showFenLoad() {
+        getChildren().clear();
+
+        Label title = new Label("Wczytaj FEN");
+        title.setTextFill(Color.WHITE);
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 28));
+
+        FenLoadView fenLoadView = new FenLoadView(ui, fenLoadHandler);
+
+        Button btnBack = createMenuButton("Wróć");
+        btnBack.setOnAction(e -> showMainMenu());
+        VBox.setMargin(btnBack, new Insets(20, 0, 0, 0));
+
+        VBox content = createContainer();
+        content.getChildren().addAll(title, fenLoadView, btnBack);
+        getChildren().add(content);
+    }
+
+    private VBox createContainer() {
+        VBox content = new VBox(15);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(30, 40, 30, 40));
         content.setMaxSize(380, 420);
@@ -95,6 +167,19 @@ public class StartMenuView extends StackPane {
         return content;
     }
 
+    private Button createMenuButton(String text) {
+        Button btn = new Button(text);
+        btn.setPrefSize(200, 40);
+        btn.setTextFill(Color.web(ui.getBackground()));
+        btn.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        btn.setCursor(Cursor.HAND);
+        String btnBg = ui.getButtonBackground();
+        btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;");
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;"));
+        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;"));
+        return btn;
+    }
+
     private Button createTimeButton(String text, int timeInSeconds) {
         Button btn = new Button(text);
         btn.setPrefSize(100, 40);
@@ -105,7 +190,9 @@ public class StartMenuView extends StackPane {
         btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;");
         btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;"));
         btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;"));
-        btn.setOnAction(event -> timeSelectedHandler.accept(timeInSeconds));
+
+        // Przekazanie czasu oraz flagi trybu (bot / znajomy)
+        btn.setOnAction(event -> timeSelectedHandler.accept(timeInSeconds, isBotMode));
         return btn;
     }
 
