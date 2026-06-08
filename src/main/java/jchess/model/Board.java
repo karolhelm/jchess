@@ -64,7 +64,34 @@ public class Board {
             }
         }
     }
+    public void undoMovePiece(Move move) {
+        Square start = move.getStart();
+        Square end = move.getEnd();
+        Piece movingPiece = move.getPieceMoved();
+        Piece capturedPiece = move.getPieceCaptured();
+        grid[start.getRow()][start.getCol()] = movingPiece;
 
+        if (move.isEnPassant()) {
+            grid[end.getRow()][end.getCol()] = null;
+            int capturedPawnRow = start.getRow();
+            int capturedPawnCol = end.getCol();
+            grid[capturedPawnRow][capturedPawnCol] = capturedPiece;
+        } else {
+            grid[end.getRow()][end.getCol()] = capturedPiece;
+        }
+        if (move.isCastling()) {
+            int row = start.getRow();
+            if (end.getCol() == 6) {
+                Piece rook = grid[row][5];
+                grid[row][5] = null;
+                grid[row][7] = rook;
+            } else if (end.getCol() == 2) {
+                Piece rook = grid[row][3];
+                grid[row][3] = null;
+                grid[row][0] = rook;
+            }
+        }
+    }
     public boolean isEmpty(Square square) {
         if (square.isValid()) {
             return grid[square.getRow()][square.getCol()] == null;

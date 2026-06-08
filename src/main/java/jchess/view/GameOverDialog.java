@@ -15,7 +15,8 @@ import jchess.config.UiConfig;
 import jchess.model.GameManager;
 
 public class GameOverDialog extends StackPane {
-    private static final String TIME_UP_REASON = "Time's up";
+    public static final String TIME_UP_REASON = "Time's up";
+    public static final String MANUAL_REASON = "Manual end";
 
     private final GameManager gameManager;
     private final UiConfig ui;
@@ -89,7 +90,7 @@ public class GameOverDialog extends StackPane {
     }
 
     private String getGameOverBadge() {
-        if (gameManager.getStatus() == GameManager.GameStatus.ENDED) {
+        if (MANUAL_REASON.equals(reason) || gameManager.getStatus() == GameManager.GameStatus.ENDED) {
             return "END";
         }
         if (TIME_UP_REASON.equals(reason)) {
@@ -101,7 +102,7 @@ public class GameOverDialog extends StackPane {
     }
 
     private String getGameOverTitle() {
-        if (gameManager.getStatus() == GameManager.GameStatus.ENDED) {
+        if (MANUAL_REASON.equals(reason) || gameManager.getStatus() == GameManager.GameStatus.ENDED) {
             return "End of game";
         }
         if (gameManager.getStatus() == GameManager.GameStatus.WHITE_WINS) {
@@ -113,7 +114,7 @@ public class GameOverDialog extends StackPane {
     }
 
     private String getGameOverMessage() {
-        if (gameManager.getStatus() == GameManager.GameStatus.ENDED) {
+        if (MANUAL_REASON.equals(reason) || gameManager.getStatus() == GameManager.GameStatus.ENDED) {
             return "Game was ended.";
         }
         if (gameManager.getStatus() == GameManager.GameStatus.WHITE_WINS) {

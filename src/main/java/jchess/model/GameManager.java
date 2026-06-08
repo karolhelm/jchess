@@ -2,6 +2,8 @@ package jchess.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Deque;
+import java.util.ArrayDeque;
 
 public class GameManager {
     private final Board board;
@@ -11,6 +13,14 @@ public class GameManager {
     private boolean blackCastleKingside;
     private boolean blackCastleQueenside;
     private Square enPassantTarget;
+    private record GameState(
+            boolean whiteCastleKingside, boolean whiteCastleQueenside,
+            boolean blackCastleKingside, boolean blackCastleQueenside,
+            Square enPassantTarget, int halfMoveClock, int fullMoveNumber,
+            GameStatus status, Move lastMove
+    ) {}
+    //we are tracking game status
+    private final Deque<GameState> stateHistory = new ArrayDeque<>();
     public enum GameStatus {
         ACTIVE, WHITE_WINS, BLACK_WINS, STALEMATE, ENDED
     }
@@ -89,6 +99,12 @@ public class GameManager {
         if (status != GameStatus.ACTIVE){
             return;
         }
+        stateHistory.push(new GameState(
+                whiteCastleKingside, whiteCastleQueenside,
+                blackCastleKingside, blackCastleQueenside,
+                enPassantTarget, halfMoveClock, fullMoveNumber,
+                status, board.getLastMove()
+        ));
         Piece captured = move.getPieceCaptured();
         if(captured!=null) {
             if(captured.getColor() == PieceColor.WHITE){
@@ -129,6 +145,44 @@ public class GameManager {
         }
         switchTurn();
         updateGameStatus();
+    }
+    public void undoMove(Move move) {
+        if (stateHistory.isEmpty()) {
+            // symmetric with playMove early-returning when status != ACTIVE: no state was pushed
+            return;
+        }
+        switchTurn();
+        board.undoMovePiece(move);
+
+        GameState prevState = stateHistory.pop();
+        this.whiteCastleKingside = prevState.whiteCastleKingside();
+        this.whiteCastleQueenside = prevState.whiteCastleQueenside();
+        this.blackCastleKingside = prevState.blackCastleKingside();
+        this.blackCastleQueenside = prevState.blackCastleQueenside();
+        this.enPassantTarget = prevState.enPassantTarget();
+        this.halfMoveClock = prevState.halfMoveClock();
+        this.fullMoveNumber = prevState.fullMoveNumber();
+        this.status = prevState.status();
+        board.setLastMove(prevState.lastMove());
+
+        Piece captured = move.getPieceCaptured();
+        if (captured != null) {
+            if (captured.getColor() == PieceColor.WHITE) {
+                capturedWhitePieces.remove(capturedWhitePieces.size() - 1);
+                whiteMaterial += captured.getValue();
+            } else {
+                capturedBlackPieces.remove(capturedBlackPieces.size() - 1);
+                blackMaterial += captured.getValue();
+            }
+        }
+        if (move.getPromotionPiece() != null) {
+            int bonus = move.getPromotionPiece().getValue() - move.getPieceMoved().getValue();
+            if (move.getPieceMoved().getColor() == PieceColor.WHITE) {
+                whiteMaterial -= bonus;
+            } else {
+                blackMaterial -= bonus;
+            }
+        }
     }
     private void updateCastlingRights(Move move){
         Piece piece = move.getPieceMoved();

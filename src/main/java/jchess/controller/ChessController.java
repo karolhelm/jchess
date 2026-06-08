@@ -1,5 +1,6 @@
 package jchess.controller;
 
+import javafx.concurrent.Task;
 import jchess.model.*;
 import jchess.view.ChessApp;
 import jchess.notation.AlgebraicNotation;
@@ -12,13 +13,38 @@ public class ChessController {
     private final ChessApp view;
     private Square selectedSquare = null;
     private List<Move> currentLegalMoves = new ArrayList<>();
+    private PieceColor botColor = PieceColor.BLACK;
+
+    private final ChessBot chessBot = new ChessBot();
+    private boolean isBotMode = false;
+    private boolean isBotThinking = false;
+    private volatile boolean gameTerminated = false;
+
     public ChessController(GameManager gameManager, ChessApp view){
         this.gameManager = gameManager;
         this.view = view;
     }
 
-        //handling mouse click from lambda
+    public void setBotMode(boolean isBotMode) {
+        this.isBotMode = isBotMode;
+    }
+
+    public PieceColor getActiveClock() {
+        if (isBotThinking) {
+            return botColor;
+        }
+        return gameManager.getCurrentTurn();
+    }
+
+    public void markGameTerminated() {
+        gameTerminated = true;
+    }
+
     public void handleSquareClick(int row, int col){
+        if (isBotThinking) {
+            return;
+        }
+
         if (gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
             return;
         }
@@ -26,7 +52,6 @@ public class ChessController {
         Square clickedSquare = new Square(row, col);
         Piece clickedPiece = gameManager.getBoard().getPiece(clickedSquare);
 
-            //logic of handling clicking: is there any piece, our piece, legal move...
         if (selectedSquare == null){
             if (clickedPiece != null && clickedPiece.getColor() == gameManager.getCurrentTurn()){
                 selectedSquare = clickedSquare;
@@ -34,7 +59,6 @@ public class ChessController {
                 view.drawBoard(selectedSquare, currentLegalMoves);
             }
         }
-                //we clicked on sth already
         else {
             if (selectedSquare.equals(clickedSquare)) {
                 selectedSquare = null;
@@ -46,7 +70,7 @@ public class ChessController {
                 view.drawBoard(selectedSquare, currentLegalMoves);
             } else {
                 Move moveExecutor = null;
-                //checking if is it legal
+
                 for (Move move : currentLegalMoves) {
                     if (move.getEnd().getRow() == clickedSquare.getRow() && move.getEnd().getCol() == clickedSquare.getCol()) {
                         moveExecutor = move;
@@ -54,14 +78,14 @@ public class ChessController {
                     }
                 }
 
-
                 if (moveExecutor != null) {
                     Piece movingPiece = moveExecutor.getPieceMoved();
                     boolean isPawn = (movingPiece.getType() == PieceType.PAWN);
                     int targetRow = moveExecutor.getEnd().getRow();
                     boolean isPromotion = isPawn && (targetRow == 0 || targetRow == 7);
+
                     if (isPromotion) {
-                        final Move finalMove = moveExecutor;  //lambda for handling promotion
+                        final Move finalMove = moveExecutor;
                         view.showPromotionDialog(gameManager.getCurrentTurn(), chosenPiece -> {
                             finalMove.setPromotionPiece(chosenPiece);
                             executeMove(finalMove);
@@ -69,30 +93,78 @@ public class ChessController {
                             view.drawBoard(null, null);
                             view.updateGraveyards();
                             showGameOverIfNeeded();
+                            makeBotMove();
                         });
                         return;
-                    } else
+                    } else {
                         executeMove(moveExecutor);
+                    }
                 }
-
 
                 selectedSquare = null;
                 view.drawBoard(null, null);
                 view.updateGraveyards();
                 showGameOverIfNeeded();
+                makeBotMove();
             }
         }
     }
-    private void executeMove(Move move) { //playMove with notation handling
-        PieceColor mover = move.getPieceMoved().getColor(); //info who played so we know if it is new row or black's moves
+
+    private void executeMove(Move move) {
+        PieceColor mover = move.getPieceMoved().getColor();
         String base = AlgebraicNotation.formatBase(move, gameManager);
         gameManager.playMove(move);
-        String san = AlgebraicNotation.withCheckSuffix(base, gameManager); //suffix
+        String san = AlgebraicNotation.withCheckSuffix(base, gameManager);
         view.recordMove(san, mover);
     }
+
     private void showGameOverIfNeeded() {
         if (gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
             view.showGameOverDialog();
+        }
+    }
+
+    private void makeBotMove() {
+        if (!isBotMode || gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
+            return;
+        }
+
+        if (gameManager.getCurrentTurn() == botColor) {
+            isBotThinking = true;
+
+            Task<Move> botTask = new Task<>() {
+                @Override
+                protected Move call() {
+                    return chessBot.findBestMove(gameManager);
+                }
+            };
+
+            botTask.setOnSucceeded(event -> {
+                isBotThinking = false;
+
+                if (gameTerminated) {
+                    return;
+                }
+
+                Move bestMove = botTask.getValue();
+
+                if (bestMove != null && gameManager.getStatus() == GameManager.GameStatus.ACTIVE) {
+                    executeMove(bestMove);
+                    view.drawBoard(null, null);
+                    view.updateGraveyards();
+                    showGameOverIfNeeded();
+                }
+            });
+
+            botTask.setOnFailed(event -> {
+                isBotThinking = false;
+                System.err.println("Bot napotkał krytyczny błąd w trakcie obliczeń!");
+                botTask.getException().printStackTrace();
+            });
+
+            Thread thread = new Thread(botTask);
+            thread.setDaemon(true);
+            thread.start();
         }
     }
 }
