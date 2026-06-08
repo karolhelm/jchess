@@ -53,7 +53,7 @@ public class ChessApp extends Application {
                 TILE_SIZE,
                 OFFSET_SIZE
         );
-        gameTimer = new GameTimer(ui(), () -> gameManager.getCurrentTurn(), this::endGameByTime);
+        gameTimer = new GameTimer(ui(), () -> controller.getActiveClock(), this::endGameByTime);
 
         BorderPane root = new BorderPane();
         appRoot = new StackPane(root);
@@ -120,8 +120,14 @@ public class ChessApp extends Application {
         drawBoard(null, null);
     }
 
-    private void startGameWithTime(int timeInSeconds, boolean isBot) {
+    private void startGameWithTime(int timeInSeconds, boolean isBot, String fenOrNull) {
         controller.setBotMode(isBot);
+        if (fenOrNull != null) {
+            FenParser.loadFen(gameManager, fenOrNull);
+            moveHistoryView.setStartingPosition(gameManager.getFullMoveNumber(), gameManager.getCurrentTurn());
+            moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
+            updateGraveyards();
+        }
         drawBoard(null, null);
         removeStartMenuOverlay();
         gameTimer.start(timeInSeconds);
@@ -132,13 +138,14 @@ public class ChessApp extends Application {
     }
 
     private void endGameByTime(PieceColor winner) {
+        controller.markGameTerminated();
         if (winner == PieceColor.WHITE) {
             gameManager.setStatus(GameManager.GameStatus.WHITE_WINS);
         } else {
             gameManager.setStatus(GameManager.GameStatus.BLACK_WINS);
         }
 
-        Platform.runLater(() -> showGameOverDialog("Time's up"));
+        Platform.runLater(() -> showGameOverDialog(GameOverDialog.TIME_UP_REASON));
     }
 
     public void showGameOverDialog() {
@@ -159,7 +166,6 @@ public class ChessApp extends Application {
         appRoot.getChildren().remove(gameOverOverlay);
         gameOverOverlay = null;
 
-        selectedThemeId = appConfig.getDefaultBoardThemeId();
         createGameSession();
         clearMoveHistory();
         drawBoard(null, null);
@@ -205,10 +211,10 @@ public class ChessApp extends Application {
     }
     private void loadFenPosition(String fen) {
         FenParser.loadFen(gameManager, fen);
-        clearMoveHistory();
+        moveHistoryView.setStartingPosition(gameManager.getFullMoveNumber(), gameManager.getCurrentTurn());
+        moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
         drawBoard(null, null);
         updateGraveyards();
-        moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
         removeStartMenuOverlay();
     }
 
@@ -216,8 +222,9 @@ public class ChessApp extends Application {
         if (startMenuOverlay != null || gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
             return;
         }
+        controller.markGameTerminated();
         gameManager.setStatus(GameManager.GameStatus.ENDED);
-        showGameOverDialog();
+        showGameOverDialog(GameOverDialog.MANUAL_REASON);
     }
 
     public void recordMove(String san, PieceColor mover) {

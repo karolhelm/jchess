@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -15,28 +16,34 @@ import jchess.config.AppConfig;
 import jchess.config.BoardTheme;
 import jchess.config.UiConfig;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class StartMenuView extends StackPane {
+
+    @FunctionalInterface
+    public interface GameStartHandler {
+        void onGameStart(int timeInSeconds, boolean isBot, String fenOrNull);
+    }
+
     private final AppConfig appConfig;
     private final UiConfig ui;
     private final Consumer<String> themeSelectedHandler;
-    private final BiConsumer<Integer, Boolean> timeSelectedHandler; // Zmienione na BiConsumer (czas, czyBot)
+    private final GameStartHandler gameStartHandler;
     private final Consumer<String> fenLoadHandler;
 
     private boolean isBotMode = false;
+    private TextField fenInputOnTimeScreen;
 
     public StartMenuView(
             AppConfig appConfig,
             Consumer<String> themeSelectedHandler,
-            BiConsumer<Integer, Boolean> timeSelectedHandler,
+            GameStartHandler gameStartHandler,
             Consumer<String> fenLoadHandler
     ) {
         this.appConfig = appConfig;
         this.ui = appConfig.getUi();
         this.themeSelectedHandler = themeSelectedHandler;
-        this.timeSelectedHandler = timeSelectedHandler;
+        this.gameStartHandler = gameStartHandler;
         this.fenLoadHandler = fenLoadHandler;
 
         setAlignment(Pos.CENTER);
@@ -104,12 +111,28 @@ public class StartMenuView extends StackPane {
         HBox unlimitedButtonBox = new HBox(15, btnUnlimited);
         unlimitedButtonBox.setAlignment(Pos.CENTER);
 
+        Label fenSubtitle = new Label("Opcjonalnie: pozycja FEN");
+        fenSubtitle.setTextFill(Color.web(ui.getAccent()));
+        fenSubtitle.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        VBox.setMargin(fenSubtitle, new Insets(10, 0, 0, 0));
+
+        fenInputOnTimeScreen = new TextField();
+        fenInputOnTimeScreen.setPromptText("Wklej FEN (puste = pozycja startowa)");
+        fenInputOnTimeScreen.setPrefWidth(300);
+        fenInputOnTimeScreen.setStyle(
+                "-fx-background-color: " + ui.getBackground() + ";" +
+                        "-fx-text-fill: " + ui.getTextPrimary() + ";" +
+                        "-fx-border-color: " + ui.getAccent() + ";" +
+                        "-fx-border-radius: 4;"
+        );
+
         Button btnBack = createMenuButton("Wróć");
         btnBack.setOnAction(e -> showMainMenu());
         VBox.setMargin(btnBack, new Insets(20, 0, 0, 0));
 
         VBox content = createContainer();
-        content.getChildren().addAll(title, subtitle, topButtons, bottomButtons, unlimitedButtonBox, btnBack);
+        content.getChildren().addAll(title, subtitle, topButtons, bottomButtons, unlimitedButtonBox,
+                fenSubtitle, fenInputOnTimeScreen, btnBack);
         getChildren().add(content);
     }
 
@@ -161,7 +184,7 @@ public class StartMenuView extends StackPane {
         VBox content = new VBox(15);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(30, 40, 30, 40));
-        content.setMaxSize(380, 460);
+        content.setMaxSize(380, 540);
         content.setStyle(
                 "-fx-background-color: " + ui.getBackground() + ";" +
                         "-fx-background-radius: 12;" +
@@ -196,8 +219,11 @@ public class StartMenuView extends StackPane {
         btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 8;"));
         btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + btnBg + "; -fx-background-radius: 8;"));
 
-        // Przekazanie czasu oraz flagi trybu (bot / znajomy)
-        btn.setOnAction(event -> timeSelectedHandler.accept(timeInSeconds, isBotMode));
+        btn.setOnAction(event -> {
+            String fen = fenInputOnTimeScreen == null ? null : fenInputOnTimeScreen.getText();
+            String trimmedFen = (fen == null || fen.trim().isEmpty()) ? null : fen.trim();
+            gameStartHandler.onGameStart(timeInSeconds, isBotMode, trimmedFen);
+        });
         return btn;
     }
 

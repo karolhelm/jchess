@@ -8,6 +8,11 @@ public class ChessBot {
     private static final int MAX_DEPTH = 4;
 
     public Move findBestMove(GameManager gameManager) {
+        Move bookMove = OpeningBook.findBookMove(gameManager);
+        if (bookMove != null) {
+            return bookMove;
+        }
+
         boolean isWhiteTurn = gameManager.getCurrentTurn() == PieceColor.WHITE;
 
         int bestValue = isWhiteTurn ? Integer.MIN_VALUE : Integer.MAX_VALUE;

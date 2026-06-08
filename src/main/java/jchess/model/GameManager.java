@@ -147,6 +147,10 @@ public class GameManager {
         updateGameStatus();
     }
     public void undoMove(Move move) {
+        if (stateHistory.isEmpty()) {
+            // symmetric with playMove early-returning when status != ACTIVE: no state was pushed
+            return;
+        }
         switchTurn();
         board.undoMovePiece(move);
 

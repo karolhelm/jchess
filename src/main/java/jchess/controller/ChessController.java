@@ -18,6 +18,7 @@ public class ChessController {
     private final ChessBot chessBot = new ChessBot();
     private boolean isBotMode = false;
     private boolean isBotThinking = false;
+    private volatile boolean gameTerminated = false;
 
     public ChessController(GameManager gameManager, ChessApp view){
         this.gameManager = gameManager;
@@ -26,6 +27,17 @@ public class ChessController {
 
     public void setBotMode(boolean isBotMode) {
         this.isBotMode = isBotMode;
+    }
+
+    public PieceColor getActiveClock() {
+        if (isBotThinking) {
+            return botColor;
+        }
+        return gameManager.getCurrentTurn();
+    }
+
+    public void markGameTerminated() {
+        gameTerminated = true;
     }
 
     public void handleSquareClick(int row, int col){
@@ -129,6 +141,10 @@ public class ChessController {
 
             botTask.setOnSucceeded(event -> {
                 isBotThinking = false;
+
+                if (gameTerminated) {
+                    return;
+                }
 
                 Move bestMove = botTask.getValue();
 

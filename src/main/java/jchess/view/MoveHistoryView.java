@@ -18,6 +18,7 @@ public class MoveHistoryView extends VBox {
     private final ListView<String> listView;
     private final Label halfMoveLabel;
     private int moveNumber = 1;
+    private boolean awaitingWhite = true;
 
     public MoveHistoryView(UiConfig ui) {
         setSpacing(8);
@@ -54,10 +55,16 @@ public class MoveHistoryView extends VBox {
     public void addMove(String san, PieceColor mover) {
         if (mover == PieceColor.WHITE) {
             items.add(moveNumber + ". " + san);
+            awaitingWhite = false;
         } else {
-            int last = items.size() - 1;
-            items.set(last, items.get(last) + "  " + san);
+            if (awaitingWhite || items.isEmpty()) {
+                items.add(moveNumber + ". ... " + san);
+            } else {
+                int last = items.size() - 1;
+                items.set(last, items.get(last) + "  " + san);
+            }
             moveNumber++;
+            awaitingWhite = true;
         }
         listView.scrollTo(items.size() - 1);
         listView.getSelectionModel().clearSelection();
@@ -65,6 +72,12 @@ public class MoveHistoryView extends VBox {
     public void clear() {
         items.clear();
         moveNumber = 1;
+        awaitingWhite = true;
         setHalfMoveClock(0);
+    }
+    public void setStartingPosition(int fullMoveNumber, PieceColor turnToMove) {
+        items.clear();
+        moveNumber = Math.max(1, fullMoveNumber);
+        awaitingWhite = (turnToMove == PieceColor.WHITE);
     }
 }
