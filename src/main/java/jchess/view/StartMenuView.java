@@ -92,6 +92,8 @@ public class StartMenuView extends StackPane {
         Button btn3Min = createTimeButton("3 min", 180);
         Button btn5Min = createTimeButton("5 min", 300);
         Button btn10Min = createTimeButton("10 min", 600);
+        Button btnUnlimited = createTimeButton("Bez limitu", 0);
+
 
         HBox topButtons = new HBox(15, btn1Min, btn3Min);
         topButtons.setAlignment(Pos.CENTER);
@@ -99,12 +101,15 @@ public class StartMenuView extends StackPane {
         HBox bottomButtons = new HBox(15, btn5Min, btn10Min);
         bottomButtons.setAlignment(Pos.CENTER);
 
+        HBox unlimitedButtonBox = new HBox(15, btnUnlimited);
+        unlimitedButtonBox.setAlignment(Pos.CENTER);
+
         Button btnBack = createMenuButton("Wróć");
         btnBack.setOnAction(e -> showMainMenu());
         VBox.setMargin(btnBack, new Insets(20, 0, 0, 0));
 
         VBox content = createContainer();
-        content.getChildren().addAll(title, subtitle, topButtons, bottomButtons, btnBack);
+        content.getChildren().addAll(title, subtitle, topButtons, bottomButtons, unlimitedButtonBox, btnBack);
         getChildren().add(content);
     }
 
@@ -156,7 +161,7 @@ public class StartMenuView extends StackPane {
         VBox content = new VBox(15);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(30, 40, 30, 40));
-        content.setMaxSize(380, 420);
+        content.setMaxSize(380, 460);
         content.setStyle(
                 "-fx-background-color: " + ui.getBackground() + ";" +
                         "-fx-background-radius: 12;" +

@@ -40,6 +40,11 @@ public class GameTimer {
 
     public void start(int timeInSeconds) {
         stop();
+        if (timeInSeconds <= 0) {
+            whiteTimerLabel.setText("White: \u221E");
+            blackTimerLabel.setText("Black: \u221E");
+            return;
+        }
         whiteTimeLeft = timeInSeconds;
         blackTimeLeft = timeInSeconds;
         updateLabels();
