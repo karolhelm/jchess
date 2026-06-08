@@ -47,7 +47,7 @@ public class PromotionDialog extends StackPane {
                 createPieceChoice(Piece.fromFenSymbol(color == PieceColor.WHITE ? 'N' : 'n'))
         );
 
-        Label titleLabel = new Label("Wybierz figur\u0119 do promocji");
+        Label titleLabel = new Label("Choose promotion piece");
         titleLabel.setTextFill(Color.web(ui.getTextPrimary()));
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 

@@ -24,7 +24,7 @@ public class FenCopyButtonView extends VBox {
         setAlignment(Pos.CENTER);
         setStyle("-fx-background-color: " + ui.getBackground() + ";");
 
-        copyButton = new Button("Kopiuj FEN");
+        copyButton = new Button("Copy FEN");
         copyButton.setMaxWidth(Double.MAX_VALUE);
         copyButton.setStyle(
                 "-fx-background-color: " + ui.getButtonBackground() + ";" +
@@ -41,9 +41,9 @@ public class FenCopyButtonView extends VBox {
         content.putString(fenSupplier.get());
         Clipboard.getSystemClipboard().setContent(content);
 
-        copyButton.setText("Skopiowano!");
+        copyButton.setText("Copied!");
         PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
-        pause.setOnFinished(e -> copyButton.setText("Kopiuj FEN"));
+        pause.setOnFinished(e -> copyButton.setText("Copy FEN"));
         pause.play();
     }
 }

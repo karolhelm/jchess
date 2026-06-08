@@ -22,7 +22,7 @@ public class GameManager {
     //we are tracking game status
     private final Deque<GameState> stateHistory = new ArrayDeque<>();
     public enum GameStatus {
-        ACTIVE, WHITE_WINS, BLACK_WINS, STALEMATE, ENDED
+        ACTIVE, WHITE_WINS, BLACK_WINS, STALEMATE, DRAW, ENDED
     }
 
     private GameStatus status = GameStatus.ACTIVE;
@@ -144,7 +144,14 @@ public class GameManager {
             fullMoveNumber++;
         }
         switchTurn();
+        evaluateEndConditions();
+    }
+
+    public void evaluateEndConditions() {
         updateGameStatus();
+        if (status == GameStatus.ACTIVE && isInsufficientMaterial()) {
+            status = GameStatus.DRAW;
+        }
     }
     public void undoMove(Move move) {
         if (stateHistory.isEmpty()) {
@@ -350,6 +357,24 @@ public class GameManager {
     }
     public boolean isInCheck(PieceColor color) {
         return isKingInCheck(color);
+    }
+
+    private boolean isInsufficientMaterial() {
+        int material = 0;
+        int pawns = 0;
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = board.getPiece(new Square(row, col));
+                if (piece == null || piece.getType() == PieceType.KING) {
+                    continue;
+                }
+                if (piece.getType() == PieceType.PAWN) {
+                    pawns++;
+                }
+                material += piece.getValue();
+            }
+        }
+        return pawns == 0 && material <= 3;
     }
 
     // checkmate and stalemate

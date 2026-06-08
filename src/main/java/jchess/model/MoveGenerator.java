@@ -5,7 +5,7 @@ import java.util.List;
 
 public class MoveGenerator{
 
-    // Główny rozdzielacz
+    // Main dispatcher
     public static List<Move> getPossibleMoves(Board board, Square currentSquare){
         Piece piece = board.getPiece(currentSquare);
 

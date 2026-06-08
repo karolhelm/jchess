@@ -50,7 +50,7 @@ public class GameOverDialog extends StackPane {
         message.setMaxWidth(280);
         message.setAlignment(Pos.CENTER);
 
-        Button restartButton = new Button("Zagraj ponownie");
+        Button restartButton = new Button("Play again");
         restartButton.setTextFill(Color.web(ui.getBackground()));
         restartButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         restartButton.setCursor(Cursor.HAND);
@@ -61,7 +61,7 @@ public class GameOverDialog extends StackPane {
         );
         restartButton.setOnAction(event -> restartHandler.run());
 
-        Button exitButton = new Button("Wyjd\u017a");
+        Button exitButton = new Button("Exit");
         exitButton.setTextFill(Color.WHITE);
         exitButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         exitButton.setCursor(Cursor.HAND);
@@ -97,6 +97,8 @@ public class GameOverDialog extends StackPane {
             return "TIME";
         } else if (gameManager.getStatus() == GameManager.GameStatus.STALEMATE) {
             return "STALEMATE";
+        } else if (gameManager.getStatus() == GameManager.GameStatus.DRAW) {
+            return "DRAW";
         }
         return "CHECKMATE";
     }
@@ -110,6 +112,9 @@ public class GameOverDialog extends StackPane {
         } else if (gameManager.getStatus() == GameManager.GameStatus.BLACK_WINS) {
             return "Black wins";
         }
+        if (gameManager.getStatus() == GameManager.GameStatus.DRAW) {
+            return "Draw";
+        }
         return "Draw";
     }
 
@@ -121,6 +126,9 @@ public class GameOverDialog extends StackPane {
             return "White has won the game.";
         } else if (gameManager.getStatus() == GameManager.GameStatus.BLACK_WINS) {
             return "Black has won the game.";
+        }
+        if (gameManager.getStatus() == GameManager.GameStatus.DRAW) {
+            return "Insufficient material to checkmate.";
         }
         return "No legal moves are available and the king is not in check.";
     }

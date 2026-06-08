@@ -88,7 +88,7 @@ public class ChessBot {
         }
     }
 
-    // Quiescence Search (Wyszukiwanie Wyciszające)
+    // Quiescence search
     private int quiescenceSearch(GameManager gameManager, int alpha, int beta, boolean isMaximizingPlayer) {
         int standPat = BoardEvaluator.evaluate(gameManager);
 
@@ -159,7 +159,7 @@ public class ChessBot {
     }
 
     private void orderMoves(List<Move> moves) {
-        moves.sort((m1, m2) -> Integer.compare(scoreMove(m2), scoreMove(m1))); // Malejąco
+        moves.sort((m1, m2) -> Integer.compare(scoreMove(m2), scoreMove(m1))); // Descending order
     }
     // (Most Valuable Victim - Least Valuable Attacker)
     private int scoreMove(Move move) {

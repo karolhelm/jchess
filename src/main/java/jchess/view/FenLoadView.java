@@ -23,12 +23,12 @@ public class FenLoadView extends VBox {
         setSpacing(6);
         setAlignment(Pos.CENTER);
 
-        Label subtitle = new Label("Wczytaj pozycję FEN");
+        Label subtitle = new Label("Load FEN position");
         subtitle.setTextFill(Color.web(ui.getAccent()));
         subtitle.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 
         TextField input = new TextField();
-        input.setPromptText("Wklej FEN...");
+        input.setPromptText("Paste FEN...");
         input.setPrefWidth(300);
         input.setStyle(
                 "-fx-background-color: " + ui.getBackground() + ";" +
@@ -37,7 +37,7 @@ public class FenLoadView extends VBox {
                         "-fx-border-radius: 4;"
         );
 
-        Button loadBtn = new Button("Wczytaj FEN");
+        Button loadBtn = new Button("Load FEN");
         loadBtn.setTextFill(Color.web(ui.getBackground()));
         loadBtn.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         loadBtn.setStyle(
@@ -59,14 +59,14 @@ public class FenLoadView extends VBox {
     private void tryLoad(String fen) {
         String trimmed = fen.trim();
         if (trimmed.isEmpty()) {
-            errorLabel.setText("Pusty FEN");
+            errorLabel.setText("Empty FEN");
             return;
         }
         try {
             fenLoadHandler.accept(trimmed);
             errorLabel.setText("");
         } catch (Exception ex) {
-            errorLabel.setText("Niepoprawny FEN");
+            errorLabel.setText("Invalid FEN");
         }
     }
 }

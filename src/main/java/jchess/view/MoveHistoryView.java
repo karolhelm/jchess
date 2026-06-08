@@ -33,7 +33,7 @@ public class MoveHistoryView extends VBox {
         halfMoveLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         setHalfMoveClock(0);
 
-        Label title = new Label("Historia partii");
+        Label title = new Label("Game history");
         title.setTextFill(Color.web(ui.getAccent()));
         title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         listView = new ListView<>(items);
@@ -50,7 +50,7 @@ public class MoveHistoryView extends VBox {
     }
 
     public void setHalfMoveClock(int halfMoves) {
-        halfMoveLabel.setText("Półruchy bez postępu: " + halfMoves + " / " + FIFTY_MOVE_LIMIT);
+        halfMoveLabel.setText("Half-moves without progress: " + halfMoves + " / " + FIFTY_MOVE_LIMIT);
     }
     public void addMove(String san, PieceColor mover) {
         if (mover == PieceColor.WHITE) {

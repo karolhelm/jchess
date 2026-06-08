@@ -18,6 +18,7 @@ public class ChessController {
     private final ChessBot chessBot = new ChessBot();
     private boolean isBotMode = false;
     private boolean isBotThinking = false;
+    private boolean openingPreviewMode = false;
     private volatile boolean gameTerminated = false;
 
     public ChessController(GameManager gameManager, ChessApp view){
@@ -27,6 +28,10 @@ public class ChessController {
 
     public void setBotMode(boolean isBotMode) {
         this.isBotMode = isBotMode;
+    }
+
+    public void setOpeningPreviewMode(boolean openingPreviewMode) {
+        this.openingPreviewMode = openingPreviewMode;
     }
 
     public PieceColor getActiveClock() {
@@ -41,7 +46,7 @@ public class ChessController {
     }
 
     public void handleSquareClick(int row, int col){
-        if (isBotThinking) {
+        if (openingPreviewMode || isBotThinking) {
             return;
         }
 
@@ -158,7 +163,7 @@ public class ChessController {
 
             botTask.setOnFailed(event -> {
                 isBotThinking = false;
-                System.err.println("Bot napotkał krytyczny błąd w trakcie obliczeń!");
+                System.err.println("Bot encountered a critical error during calculation!");
                 botTask.getException().printStackTrace();
             });
 

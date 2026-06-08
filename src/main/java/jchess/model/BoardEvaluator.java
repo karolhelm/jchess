@@ -2,22 +2,22 @@ package jchess.model;
 
 public class BoardEvaluator {
 
-    // Wartości bazowe figur
+    // Base piece values
     private static final int PAWN_VALUE = 100;
     private static final int KNIGHT_VALUE = 320;
     private static final int BISHOP_VALUE = 330;
     private static final int ROOK_VALUE = 500;
     private static final int QUEEN_VALUE = 900;
 
-    // Fazy gry dla płynnego przejścia (Tapered Evaluation)
-    // Maksymalna faza to 24 (4x Skoczek=4, 4x Goniec=4, 4x Wieża=8, 2x Hetman=8)
+    // Game phase weights for tapered evaluation
+    // Max phase is 24 (4x Knight=4, 4x Bishop=4, 4x Rook=8, 2x Queen=8)
     private static final int PHASE_WEIGHT_KNIGHT = 1;
     private static final int PHASE_WEIGHT_BISHOP = 1;
     private static final int PHASE_WEIGHT_ROOK = 2;
     private static final int PHASE_WEIGHT_QUEEN = 4;
     private static final int MAX_PHASE = 24;
 
-    // --- TABLICE DLA GRY ŚRODKOWEJ (Midgame - MG) ---
+    // --- MIDGAME PIECE-SQUARE TABLES (MG) ---
     private static final int[][] PAWN_MG_PST = {
             {  0,  0,  0,  0,  0,  0,  0,  0},
             { 50, 50, 50, 50, 50, 50, 50, 50},
@@ -95,7 +95,7 @@ public class BoardEvaluator {
             {  0,  0,  0,  0,  0,  0,  0,  0}
     };
 
-    // Król w końcówce absolutnie MUSI iść do centrum planszy
+    // In endgames, the king should move toward the center
     private static final int[][] KING_EG_PST = {
             {-50,-40,-30,-20,-20,-30,-40,-50},
             {-30,-20,-10,  0,  0,-10,-20,-30},
@@ -111,13 +111,13 @@ public class BoardEvaluator {
         GameManager.GameStatus status = gameManager.getStatus();
         if (status == GameManager.GameStatus.WHITE_WINS) return 100000;
         if (status == GameManager.GameStatus.BLACK_WINS) return -100000;
-        if (status == GameManager.GameStatus.STALEMATE) return 0;
+        if (status == GameManager.GameStatus.STALEMATE || status == GameManager.GameStatus.DRAW) return 0;
 
         Board board = gameManager.getBoard();
 
-        int mgEval = 0; // Ocena gry środkowej
-        int egEval = 0; // Ocena końcówki
-        int phase = 0;  // Faza gry (im wyższa, tym bardziej "midgame")
+        int mgEval = 0; // Midgame evaluation
+        int egEval = 0; // Endgame evaluation
+        int phase = 0;  // Game phase (higher = more midgame)
 
         Square whiteKingSq = null;
         Square blackKingSq = null;

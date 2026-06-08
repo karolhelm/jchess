@@ -16,9 +16,9 @@
     }
   },
   "boardThemes": [
-    { "id": "classic", "displayName": "Klasyczny", "lightSquare": "#F0D9B5", "darkSquare": "#B58863" },
-    { "id": "green",   "displayName": "Zielony",   "lightSquare": "#EEEED2", "darkSquare": "#769656" },
-    { "id": "blue",    "displayName": "Niebieski", "lightSquare": "#DEE3E6", "darkSquare": "#8CA2AD" }
+    { "id": "classic", "displayName": "Classic", "lightSquare": "#F0D9B5", "darkSquare": "#B58863" },
+    { "id": "green",   "displayName": "Green",   "lightSquare": "#EEEED2", "darkSquare": "#769656" },
+    { "id": "blue",    "displayName": "Blue",    "lightSquare": "#DEE3E6", "darkSquare": "#8CA2AD" }
   ],
   "defaultBoardThemeId": "classic",
   "ui": {

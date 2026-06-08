@@ -71,6 +71,7 @@ public class FenParser {
 
         manager.resetGraveyardFromBoard();
         manager.setStatus(GameManager.GameStatus.ACTIVE);
+        manager.evaluateEndConditions();
     }
     public static String toFen(GameManager manager) {
         StringBuilder fen = new StringBuilder();

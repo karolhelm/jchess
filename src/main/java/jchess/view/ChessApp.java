@@ -12,12 +12,14 @@ import jchess.config.AppConfig;
 import jchess.config.AppConfigLoader;
 import jchess.config.UiConfig;
 import jchess.controller.ChessController;
+import jchess.controller.OpeningPreviewController;
 import jchess.model.GameManager;
 import jchess.model.Move;
 import jchess.model.Piece;
 import jchess.model.PieceColor;
 import jchess.model.Square;
 import jchess.model.FenParser;
+import jchess.model.Opening;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -39,6 +41,8 @@ public class ChessApp extends Application {
     private GameTimer gameTimer;
     private String selectedThemeId;
     private MoveHistoryView moveHistoryView;
+    private OpeningPreviewController openingPreviewController;
+    private EndGameButtonView endGameButtonView;
     @Override
     public void start(Stage primaryStage) {
         loadConfig();
@@ -54,14 +58,23 @@ public class ChessApp extends Application {
                 OFFSET_SIZE
         );
         gameTimer = new GameTimer(ui(), () -> controller.getActiveClock(), this::endGameByTime);
+        openingPreviewController = new OpeningPreviewController(
+                ui(),
+                gameManager,
+                controller,
+                gameTimer,
+                this::refreshAfterPositionLoad,
+                this::removeStartMenuOverlay,
+                this::showGameOverIfPositionEnded
+        );
 
         BorderPane root = new BorderPane();
         appRoot = new StackPane(root);
         root.setCenter(boardView);
         moveHistoryView = new MoveHistoryView(ui());
-        EndGameButtonView endGameButtonView = new EndGameButtonView(ui(), this::endGameManually);
+        endGameButtonView = new EndGameButtonView(ui(), this::endGameManually);
         FenCopyButtonView fenCopyButtonView = new FenCopyButtonView(ui(), () -> FenParser.toFen(gameManager));
-        VBox rightSide = new VBox(moveHistoryView, endGameButtonView, fenCopyButtonView);
+        VBox rightSide = new VBox(moveHistoryView, openingPreviewController.getView(), endGameButtonView, fenCopyButtonView);
         rightSide.setPrefWidth(200);
         rightSide.setStyle("-fx-background-color: " + ui().getBackground() + ";");
         VBox.setVgrow(moveHistoryView, Priority.ALWAYS);
@@ -111,7 +124,9 @@ public class ChessApp extends Application {
             return;
         }
 
-        startMenuOverlay = new StartMenuView(appConfig, this::selectTheme, this::startGameWithTime, this::loadFenPosition);
+        startMenuOverlay = new StartMenuView(
+                appConfig, this::selectTheme, this::startGameWithTime, this::loadFenPosition, this::startOpeningPreview
+        );
         appRoot.getChildren().add(startMenuOverlay);
     }
 
@@ -120,17 +135,23 @@ public class ChessApp extends Application {
         drawBoard(null, null);
     }
 
+    private void startOpeningPreview(Opening opening) {
+        openingPreviewController.start(opening);
+        endGameButtonView.setLabel("End study");
+    }
+
     private void startGameWithTime(int timeInSeconds, boolean isBot, String fenOrNull) {
+        openingPreviewController.reset();
+        endGameButtonView.setLabel("End game");
         controller.setBotMode(isBot);
         if (fenOrNull != null) {
             FenParser.loadFen(gameManager, fenOrNull);
-            moveHistoryView.setStartingPosition(gameManager.getFullMoveNumber(), gameManager.getCurrentTurn());
-            moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
-            updateGraveyards();
+            refreshAfterPositionLoad();
         }
         drawBoard(null, null);
         removeStartMenuOverlay();
-        gameTimer.start(timeInSeconds);
+        gameTimer.start(fenOrNull != null ? 0 : timeInSeconds);
+        showGameOverIfPositionEnded();
     }
     private void removeStartMenuOverlay() {
         appRoot.getChildren().remove(startMenuOverlay);
@@ -167,6 +188,9 @@ public class ChessApp extends Application {
         gameOverOverlay = null;
 
         createGameSession();
+        openingPreviewController.bindSession(gameManager, controller);
+        openingPreviewController.reset();
+        endGameButtonView.setLabel("End game");
         clearMoveHistory();
         drawBoard(null, null);
         updateGraveyards();
@@ -210,21 +234,60 @@ public class ChessApp extends Application {
         );
     }
     private void loadFenPosition(String fen) {
+        openingPreviewController.reset();
+        endGameButtonView.setLabel("End game");
+        controller.setBotMode(false);
         FenParser.loadFen(gameManager, fen);
-        moveHistoryView.setStartingPosition(gameManager.getFullMoveNumber(), gameManager.getCurrentTurn());
-        moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
+        refreshAfterPositionLoad();
+        removeStartMenuOverlay();
+        gameTimer.start(0);
+        showGameOverIfPositionEnded();
+    }
+
+    private void refreshAfterPositionLoad() {
+        clearMoveHistory();
+        syncUiAfterPositionLoad();
         drawBoard(null, null);
         updateGraveyards();
-        removeStartMenuOverlay();
+    }
+
+    private void syncUiAfterPositionLoad() {
+        moveHistoryView.setStartingPosition(gameManager.getFullMoveNumber(), gameManager.getCurrentTurn());
+        moveHistoryView.setHalfMoveClock(gameManager.getHalfMoveClock());
+    }
+
+    private void showGameOverIfPositionEnded() {
+        if (gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
+            Platform.runLater(this::showGameOverDialog);
+        }
     }
 
     private void endGameManually() {
-        if (startMenuOverlay != null || gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
+        if (startMenuOverlay != null) {
+            return;
+        }
+        if (openingPreviewController.isPreviewActive()) {
+            endOpeningStudy();
+            return;
+        }
+        if (gameManager.getStatus() != GameManager.GameStatus.ACTIVE) {
             return;
         }
         controller.markGameTerminated();
         gameManager.setStatus(GameManager.GameStatus.ENDED);
         showGameOverDialog(GameOverDialog.MANUAL_REASON);
+    }
+
+    private void endOpeningStudy() {
+        openingPreviewController.reset();
+        createGameSession();
+        openingPreviewController.bindSession(gameManager, controller);
+        clearMoveHistory();
+        drawBoard(null, null);
+        updateGraveyards();
+        gameTimer.stop();
+        endGameButtonView.setLabel("End game");
+        showStartMenu();
     }
 
     public void recordMove(String san, PieceColor mover) {

@@ -8,12 +8,14 @@ import jchess.config.UiConfig;
 
 public class EndGameButtonView extends VBox {
 
+    private final Button endBtn;
+
     public EndGameButtonView(UiConfig ui, Runnable onEndGame) {
         setPadding(new Insets(0, 10, 6, 10));
         setAlignment(Pos.CENTER);
         setStyle("-fx-background-color: " + ui.getBackground() + ";");
 
-        Button endBtn = new Button("Zakończ grę");
+        endBtn = new Button("End game");
         endBtn.setMaxWidth(Double.MAX_VALUE);
         endBtn.setStyle(
                 "-fx-background-color: #4a4744;" +
@@ -23,5 +25,9 @@ public class EndGameButtonView extends VBox {
         endBtn.setOnAction(e -> onEndGame.run());
 
         getChildren().add(endBtn);
+    }
+
+    public void setLabel(String text) {
+        endBtn.setText(text);
     }
 }
