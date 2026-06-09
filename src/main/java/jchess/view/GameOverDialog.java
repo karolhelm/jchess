@@ -21,15 +21,19 @@ public class GameOverDialog extends StackPane {
     private final GameManager gameManager;
     private final UiConfig ui;
     private final String reason;
+    private final Runnable reviewHandler;
+    private final boolean reviewAvailable;
 
-    public GameOverDialog(GameManager gameManager, UiConfig ui, String reason, Runnable restartHandler, Runnable exitHandler) {
+    public GameOverDialog(GameManager gameManager, UiConfig ui, String reason, Runnable restartHandler, Runnable exitHandler, Runnable reviewHandler, boolean reviewAvailable) {
         this.gameManager = gameManager;
         this.ui = ui;
         this.reason = reason;
+        this.reviewHandler = reviewHandler;
+        this.reviewAvailable = reviewAvailable;
 
         setAlignment(Pos.CENTER);
-        setStyle("-fx-background-color: rgba(0, 0, 0, 0.45);");
-        setPickOnBounds(true);
+        setStyle("-fx-background-color: transparent;");
+        setPickOnBounds(false);
         getChildren().add(createContent(restartHandler, exitHandler));
     }
 
@@ -37,17 +41,17 @@ public class GameOverDialog extends StackPane {
         Label badge = new Label(getGameOverBadge());
         badge.setTextFill(Color.web(ui.getBackground()));
         badge.setFont(Font.font("Arial", FontWeight.BOLD, 12));
-        badge.setStyle("-fx-background-color: " + getGameOverAccent() + "; -fx-padding: 5 12; -fx-background-radius: 14;");
+        badge.setStyle("-fx-background-color: " + getGameOverAccent() + "; -fx-padding: 4 11; -fx-background-radius: 12;");
 
         Label title = new Label(getGameOverTitle());
         title.setTextFill(Color.web(ui.getTextPrimary()));
-        title.setFont(Font.font("Arial", FontWeight.BOLD, 26));
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 22));
 
         Label message = new Label(getGameOverMessage());
         message.setTextFill(Color.web("#d9d9d9"));
-        message.setFont(Font.font("Arial", 15));
+        message.setFont(Font.font("Arial", 14));
         message.setWrapText(true);
-        message.setMaxWidth(280);
+        message.setMaxWidth(240);
         message.setAlignment(Pos.CENTER);
 
         Button restartButton = new Button("Play again");
@@ -56,8 +60,8 @@ public class GameOverDialog extends StackPane {
         restartButton.setCursor(Cursor.HAND);
         restartButton.setStyle(
                 "-fx-background-color: " + getGameOverAccent() + ";" +
-                        "-fx-background-radius: 8;" +
-                        "-fx-padding: 8 20;"
+                        "-fx-background-radius: 7;" +
+                        "-fx-padding: 7 16;"
         );
         restartButton.setOnAction(event -> restartHandler.run());
 
@@ -67,18 +71,36 @@ public class GameOverDialog extends StackPane {
         exitButton.setCursor(Cursor.HAND);
         exitButton.setStyle(
                 "-fx-background-color: #4a4744;" +
-                        "-fx-background-radius: 8;" +
-                        "-fx-padding: 8 20;"
+                        "-fx-background-radius: 7;" +
+                        "-fx-padding: 7 16;"
         );
         exitButton.setOnAction(event -> exitHandler.run());
 
-        HBox buttonsBox = new HBox(15, exitButton, restartButton);
+        Button reviewButton = new Button("Review game");
+        reviewButton.setTextFill(Color.WHITE);
+        reviewButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        reviewButton.setCursor(Cursor.HAND);
+        reviewButton.setStyle(
+                "-fx-background-color: #4a4744;" +
+                        "-fx-background-radius: 7;" +
+                        "-fx-padding: 7 16;"
+        );
+        reviewButton.setOnAction(event -> reviewHandler.run());
+
+        HBox buttonsBox = new HBox(10, exitButton, restartButton);
         buttonsBox.setAlignment(Pos.CENTER);
 
-        VBox content = new VBox(12, badge, title, message, buttonsBox);
+        VBox content = new VBox(11, badge, title, message, buttonsBox);
+        if (reviewAvailable) {
+            HBox reviewBox = new HBox(reviewButton);
+            reviewBox.setAlignment(Pos.CENTER);
+            content.getChildren().add(reviewBox);
+        }
         content.setAlignment(Pos.CENTER);
-        content.setPadding(new Insets(24, 32, 20, 32));
-        content.setMaxWidth(340);
+        content.setPadding(new Insets(20, 26, 18, 26));
+        content.setMaxWidth(280);
+        content.setMaxHeight(VBox.USE_PREF_SIZE);
+        content.setOpacity(0.92);
         content.setStyle(
                 "-fx-background-color: " + ui.getBackground() + ";" +
                         "-fx-background-radius: 12;" +

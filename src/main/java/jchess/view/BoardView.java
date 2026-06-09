@@ -57,14 +57,14 @@ public class BoardView extends GridPane {
         BoardTheme theme = appConfig.getThemeById(selectedThemeId);
 
         addRankLabels();
-        addBoardTiles(board, selectedSquare, legalMoves, theme);
+        addBoardTiles(board, selectedSquare, legalMoves, board.getLastMove(), theme);
         addFileLabels();
     }
 
     private void addRankLabels() {
         for (int i = 0; i < 8; i++) {
             Label rankLabel = new Label(String.valueOf(8 - i));
-            rankLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            rankLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
             rankLabel.setTextFill(Color.web(appConfig.getUi().getCoordinate()));
             rankLabel.setPrefSize(offsetSize, tileSize);
             rankLabel.setAlignment(Pos.CENTER);
@@ -72,20 +72,21 @@ public class BoardView extends GridPane {
         }
     }
 
-    private void addBoardTiles(Board board, Square selectedSquare, List<Move> legalMoves, BoardTheme theme) {
+    private void addBoardTiles(Board board, Square selectedSquare, List<Move> legalMoves, Move lastMove, BoardTheme theme) {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                StackPane tile = createTile(board, selectedSquare, legalMoves, theme, row, col);
+                StackPane tile = createTile(board, selectedSquare, legalMoves, lastMove, theme, row, col);
                 add(tile, col + 1, row);
             }
         }
     }
 
-    private StackPane createTile(Board board, Square selectedSquare, List<Move> legalMoves, BoardTheme theme, int row, int col) {
+    private StackPane createTile(Board board, Square selectedSquare, List<Move> legalMoves, Move lastMove, BoardTheme theme, int row, int col) {
         StackPane tile = new StackPane();
         Piece piece = board.getPiece(new Square(row, col));
 
         tile.getChildren().add(createSquareBackground(theme, row, col));
+        addLastMoveHighlight(tile, lastMove, row, col);
         addSelectedHighlight(tile, selectedSquare, row, col);
         addPieceImage(tile, piece);
         addLegalMoveIndicator(tile, piece, legalMoves, row, col);
@@ -94,6 +95,22 @@ public class BoardView extends GridPane {
         final int clickedCol = col;
         tile.setOnMouseClicked(event -> squareClickHandler.accept(clickedRow, clickedCol));
         return tile;
+    }
+
+    private void addLastMoveHighlight(StackPane tile, Move lastMove, int row, int col) {
+        if (lastMove == null) {
+            return;
+        }
+        Square start = lastMove.getStart();
+        Square end = lastMove.getEnd();
+        boolean isStart = start != null && start.getRow() == row && start.getCol() == col;
+        boolean isEnd = end != null && end.getRow() == row && end.getCol() == col;
+        if (!isStart && !isEnd) {
+            return;
+        }
+        Rectangle highlight = new Rectangle(tileSize, tileSize);
+        highlight.setFill(Color.web(appConfig.getUi().getHighlight(), 0.35));
+        tile.getChildren().add(highlight);
     }
 
     private Rectangle createSquareBackground(BoardTheme theme, int row, int col) {
@@ -169,7 +186,7 @@ public class BoardView extends GridPane {
     private void addFileLabels() {
         for (int i = 0; i < 8; i++) {
             Label fileLabel = new Label(FILES[i]);
-            fileLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            fileLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
             fileLabel.setTextFill(Color.web(appConfig.getUi().getCoordinate()));
             fileLabel.setPrefSize(tileSize, offsetSize);
             fileLabel.setAlignment(Pos.CENTER);

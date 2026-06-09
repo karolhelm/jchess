@@ -21,36 +21,39 @@ public class MoveHistoryView extends VBox {
     private boolean awaitingWhite = true;
 
     public MoveHistoryView(UiConfig ui) {
-        setSpacing(8);
-        setPadding(new Insets(10));
-        setMinWidth(180);
-        setPrefWidth(200);
+        setSpacing(10);
+        setPadding(new Insets(12));
+        setMinWidth(220);
+        setPrefWidth(240);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         setStyle("-fx-background-color: " + ui.getBackground() + ";");
 
         halfMoveLabel = new Label();
         halfMoveLabel.setTextFill(Color.web(ui.getTextPrimary()));
-        halfMoveLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        halfMoveLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        halfMoveLabel.setWrapText(true);
+        halfMoveLabel.setMaxWidth(Double.MAX_VALUE);
         setHalfMoveClock(0);
 
         Label title = new Label("Game history");
         title.setTextFill(Color.web(ui.getAccent()));
-        title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         listView = new ListView<>(items);
         listView.setFocusTraversable(false);
         listView.setStyle(
                 "-fx-background-color: " + ui.getBackground() + ";" +
                         "-fx-control-inner-background: " + ui.getBackground() + ";" +
                         "-fx-focus-color: transparent;" +
-                        "-fx-faint-focus-color: transparent;"
+                        "-fx-faint-focus-color: transparent;" +
+                        "-fx-font-size: 14px;"
         );
-        listView.setFixedCellSize(22);
+        listView.setFixedCellSize(26);
         getChildren().addAll(halfMoveLabel, title, listView);
         VBox.setVgrow(listView, Priority.ALWAYS);
     }
 
     public void setHalfMoveClock(int halfMoves) {
-        halfMoveLabel.setText("Half-moves without progress: " + halfMoves + " / " + FIFTY_MOVE_LIMIT);
+        halfMoveLabel.setText("Half-moves: " + halfMoves + " / " + FIFTY_MOVE_LIMIT);
     }
     public void addMove(String san, PieceColor mover) {
         if (mover == PieceColor.WHITE) {

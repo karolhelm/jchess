@@ -63,7 +63,7 @@ public class GameTimer {
     private Label createTimerLabel(UiConfig ui, String initialText) {
         Label label = new Label(initialText);
         label.setTextFill(Color.web(ui.getTextPrimary()));
-        label.setFont(new Font("Arial", 20));
+        label.setFont(new Font("Arial", 24));
         return label;
     }
 

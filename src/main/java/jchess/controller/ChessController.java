@@ -19,6 +19,7 @@ public class ChessController {
     private boolean isBotMode = false;
     private boolean isBotThinking = false;
     private boolean openingPreviewMode = false;
+    private boolean reviewMode = false;
     private volatile boolean gameTerminated = false;
 
     public ChessController(GameManager gameManager, ChessApp view){
@@ -34,6 +35,10 @@ public class ChessController {
         this.openingPreviewMode = openingPreviewMode;
     }
 
+    public void setReviewMode(boolean reviewMode) {
+        this.reviewMode = reviewMode;
+    }
+
     public PieceColor getActiveClock() {
         if (isBotThinking) {
             return botColor;
@@ -46,7 +51,7 @@ public class ChessController {
     }
 
     public void handleSquareClick(int row, int col){
-        if (openingPreviewMode || isBotThinking) {
+        if (openingPreviewMode || reviewMode || isBotThinking) {
             return;
         }
 

@@ -20,7 +20,7 @@ public class FenCopyButtonView extends VBox {
     public FenCopyButtonView(UiConfig ui, Supplier<String> fenSupplier) {
         this.fenSupplier = fenSupplier;
 
-        setPadding(new Insets(0, 10, 10, 10));
+        setPadding(new Insets(0, 12, 12, 12));
         setAlignment(Pos.CENTER);
         setStyle("-fx-background-color: " + ui.getBackground() + ";");
 
@@ -29,7 +29,9 @@ public class FenCopyButtonView extends VBox {
         copyButton.setStyle(
                 "-fx-background-color: " + ui.getButtonBackground() + ";" +
                         "-fx-text-fill: " + ui.getBackground() + ";" +
-                        "-fx-background-radius: 6;"
+                        "-fx-background-radius: 6;" +
+                        "-fx-padding: 8 12;" +
+                        "-fx-font-size: 14px;"
         );
         copyButton.setOnAction(e -> copyToClipboard());
 

@@ -223,11 +223,13 @@ public class BoardEvaluator {
         int losingKingFileDist = Math.max(3 - losingKing.getCol(), losingKing.getCol() - 4);
         int losingKingDistFromCenter = losingKingRankDist + losingKingFileDist;
 
-        eval += losingKingDistFromCenter * 10;
+ 
+        eval += losingKingDistFromCenter * 50; 
         int distBetweenKings = Math.abs(winningKing.getRow() - losingKing.getRow()) +
                 Math.abs(winningKing.getCol() - losingKing.getCol());
 
-        eval += (14 - distBetweenKings) * 4;
+     
+        eval += (14 - distBetweenKings) * 30; 
 
         return eval;
     }
