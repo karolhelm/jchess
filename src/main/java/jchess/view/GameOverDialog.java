@@ -54,7 +54,7 @@ public class GameOverDialog extends StackPane {
         message.setMaxWidth(240);
         message.setAlignment(Pos.CENTER);
 
-        Button restartButton = new Button("Play again");
+        Button restartButton = new Button("Back to menu");
         restartButton.setTextFill(Color.web(ui.getBackground()));
         restartButton.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         restartButton.setCursor(Cursor.HAND);
