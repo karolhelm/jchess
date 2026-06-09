@@ -19,6 +19,7 @@ import jchess.model.Piece;
 import jchess.model.PieceColor;
 import jchess.model.Square;
 import jchess.model.FenParser;
+import jchess.model.GameMode;
 import jchess.model.Opening;
 import java.util.List;
 import java.util.function.Consumer;
@@ -140,12 +141,13 @@ public class ChessApp extends Application {
         endGameButtonView.setLabel("End study");
     }
 
-    private void startGameWithTime(int timeInSeconds, boolean isBot, String fenOrNull) {
+    private void startGameWithTime(int timeInSeconds, boolean isBot, GameMode gameMode, String fenOrNull) {
         openingPreviewController.reset();
         endGameButtonView.setLabel("End game");
         controller.setBotMode(isBot);
-        if (fenOrNull != null) {
-            FenParser.loadFen(gameManager, fenOrNull);
+        String startingFen = FenParser.resolveStartingFen(gameMode, fenOrNull);
+        if (!startingFen.equals(FenParser.STARTING_FEN)) {
+            FenParser.loadFen(gameManager, startingFen);
             refreshAfterPositionLoad();
         }
         drawBoard(null, null);

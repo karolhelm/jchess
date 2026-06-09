@@ -1,7 +1,75 @@
 package jchess.model;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class FenParser {
-    public static final String STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; //starting position
+    public static final String STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    public static String resolveStartingFen(GameMode mode, String customFenOrNull) {
+        if (customFenOrNull != null && !customFenOrNull.isBlank()) {
+            return customFenOrNull.trim();
+        }
+        if (mode == GameMode.CHESS_960) {
+            return generateChess960Fen();
+        }
+        return STARTING_FEN;
+    }
+
+    public static String generateChess960Fen() {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        Set<Integer> available = new HashSet<>();
+        for (int col = 1; col <= 8; col++) {
+            available.add(col);
+        }
+        char[] backRank = new char[8];
+
+        int kingCol = random.nextInt(2, 8);
+        available.remove(kingCol);
+        backRank[kingCol - 1] = 'k';
+
+        int leftRookCol = random.nextInt(1, kingCol);
+        available.remove(leftRookCol);
+        backRank[leftRookCol - 1] = 'r';
+
+        int rightRookCol = random.nextInt(kingCol + 1, 9);
+        available.remove(rightRookCol);
+        backRank[rightRookCol - 1] = 'r';
+
+        List<Integer> lightCols = new ArrayList<>();
+        List<Integer> darkCols = new ArrayList<>();
+        for (int col : available) {
+            if (col % 2 == 1) {
+                lightCols.add(col);
+            } else {
+                darkCols.add(col);
+            }
+        }
+
+        int lightBishopCol = lightCols.get(random.nextInt(lightCols.size()));
+        available.remove(lightBishopCol);
+        backRank[lightBishopCol - 1] = 'b';
+
+        int darkBishopCol = darkCols.get(random.nextInt(darkCols.size()));
+        available.remove(darkBishopCol);
+        backRank[darkBishopCol - 1] = 'b';
+
+        List<Integer> remaining = new ArrayList<>(available);
+        int queenCol = remaining.get(random.nextInt(remaining.size()));
+        available.remove(queenCol);
+        backRank[queenCol - 1] = 'q';
+
+        for (int knightCol : available) {
+            backRank[knightCol - 1] = 'n';
+        }
+
+        String blackBackRank = new String(backRank);
+        String whiteBackRank = blackBackRank.toUpperCase();
+        return blackBackRank + "/pppppppp/8/8/8/8/PPPPPPPP/" + whiteBackRank + " w KQkq - 0 1";
+    }
 
     public static void loadFen(GameManager manager, String fen) {
         String[] parts = fen.split(" ");//splits FEN into parts
@@ -70,6 +138,8 @@ public class FenParser {
         }
 
         manager.resetGraveyardFromBoard();
+        manager.initCastlingFromBackRank();
+        manager.syncCastlingRights();
         manager.setStatus(GameManager.GameStatus.ACTIVE);
         manager.evaluateEndConditions();
     }

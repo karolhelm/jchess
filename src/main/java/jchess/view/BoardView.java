@@ -146,9 +146,22 @@ public class BoardView extends GridPane {
         }
 
         for (Move move : legalMoves) {
-            if (move.getEnd().getRow() == row && move.getEnd().getCol() == col) {
-                return true;
+            if (move.isCastling()) {
+                if (move.getStart().getRow() == row && move.getStart().getCol() == col) {
+                    continue;
+                }
+                if (move.getEnd().getRow() == row && move.getEnd().getCol() == col) {
+                    return true;
+                }
+                continue;
             }
+            if (move.getEnd().getRow() != row || move.getEnd().getCol() != col) {
+                continue;
+            }
+            if (move.getStart().getRow() == row && move.getStart().getCol() == col) {
+                continue;
+            }
+            return true;
         }
         return false;
     }

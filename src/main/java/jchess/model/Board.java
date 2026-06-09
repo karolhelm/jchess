@@ -31,21 +31,18 @@ public class Board {
         Square end = move.getEnd();
         Piece movingPiece = move.getPieceMoved();
         if(start.isValid() && end.isValid()){
+            if (move.isCastling()) {
+                Square rookStart = move.getRookStart();
+                Square rookEnd = move.getRookEnd();
+                Piece rook = grid[rookStart.getRow()][rookStart.getCol()];
+                grid[start.getRow()][start.getCol()] = null;
+                grid[rookStart.getRow()][rookStart.getCol()] = null;
+                grid[end.getRow()][end.getCol()] = movingPiece;
+                grid[rookEnd.getRow()][rookEnd.getCol()] = rook;
+            } else {
             grid[start.getRow()][start.getCol()] = null;
             grid[end.getRow()][end.getCol()] = movingPiece;
-            if(move.isCastling()){
-                int row = start.getRow();
-                if (end.getCol() == 6) {
-                    Piece rook = grid[row][7];
-                    grid[row][7] = null;
-                    grid[row][5] = rook;
-                }
-                else if (end.getCol() == 2) {
-                    Piece rook = grid[row][0];
-                    grid[row][0] = null;
-                    grid[row][3] = rook;
-                }
-            } else if(move.isEnPassant()){
+            if(move.isEnPassant()){
                 int capturedPawnRow = start.getRow();
                 int capturedPawnCol = end.getCol();
                 grid[capturedPawnRow][capturedPawnCol] = null;
@@ -61,6 +58,7 @@ public class Board {
                         grid[endRow][end.getCol()] = defaultQueen;
                     }
                 }
+            }
             }
         }
     }
@@ -80,16 +78,11 @@ public class Board {
             grid[end.getRow()][end.getCol()] = capturedPiece;
         }
         if (move.isCastling()) {
-            int row = start.getRow();
-            if (end.getCol() == 6) {
-                Piece rook = grid[row][5];
-                grid[row][5] = null;
-                grid[row][7] = rook;
-            } else if (end.getCol() == 2) {
-                Piece rook = grid[row][3];
-                grid[row][3] = null;
-                grid[row][0] = rook;
-            }
+            Square rookStart = move.getRookStart();
+            Square rookEnd = move.getRookEnd();
+            Piece rook = grid[rookEnd.getRow()][rookEnd.getCol()];
+            grid[rookEnd.getRow()][rookEnd.getCol()] = null;
+            grid[rookStart.getRow()][rookStart.getCol()] = rook;
         }
     }
     public boolean isEmpty(Square square) {

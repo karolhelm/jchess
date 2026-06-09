@@ -8,23 +8,38 @@ public class Move {
     private boolean isCastling;
     private boolean isEnPassant;
     private Piece promotionPiece;
+    private final Square rookStart;
+    private final Square rookEnd;
+
     public Move(Square start, Square end, Piece pieceMoved, Piece pieceCaptured) {
         this.start = start;
         this.end = end;
         this.pieceMoved = pieceMoved;
-        this.pieceCaptured = pieceCaptured;  //simple move
+        this.pieceCaptured = pieceCaptured;
         this.isCastling = false;
         this.isEnPassant = false;
+        this.promotionPiece = null;
+        this.rookStart = null;
+        this.rookEnd = null;
     }
+
     public Move(Square start, Square end, Piece pieceMoved, Piece pieceCaptured,
                 Piece promotionPiece, boolean isEnPassant, boolean isCastling) {
+        this(start, end, pieceMoved, pieceCaptured, promotionPiece, isEnPassant, isCastling, null, null);
+    }
+
+    public Move(Square start, Square end, Piece pieceMoved, Piece pieceCaptured,
+                Piece promotionPiece, boolean isEnPassant, boolean isCastling,
+                Square rookStart, Square rookEnd) {
         this.start = start;
-        this.end = end;  //constructor for complicated moves
+        this.end = end;
         this.pieceMoved = pieceMoved;
         this.pieceCaptured = pieceCaptured;
         this.promotionPiece = promotionPiece;
         this.isEnPassant = isEnPassant;
         this.isCastling = isCastling;
+        this.rookStart = rookStart;
+        this.rookEnd = rookEnd;
     }
     public Square getStart() {
         return start;
@@ -65,6 +80,14 @@ public class Move {
 
     public void setPromotionPiece(Piece promotionPiece) {
         this.promotionPiece = promotionPiece;
+    }
+
+    public Square getRookStart() {
+        return rookStart;
+    }
+
+    public Square getRookEnd() {
+        return rookEnd;
     }
 
 }
