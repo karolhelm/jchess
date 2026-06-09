@@ -15,6 +15,7 @@ import javafx.scene.text.FontWeight;
 import jchess.config.AppConfig;
 import jchess.config.BoardTheme;
 import jchess.config.UiConfig;
+import jchess.model.GameMode;
 import jchess.model.Opening;
 import jchess.model.OpeningLibrary;
 
@@ -24,7 +25,7 @@ public class StartMenuView extends StackPane {
 
     @FunctionalInterface
     public interface GameStartHandler {
-        void onGameStart(int timeInSeconds, boolean isBot, String fenOrNull);
+        void onGameStart(int timeInSeconds, boolean isBot, GameMode gameMode, String fenOrNull);
     }
 
     private final AppConfig appConfig;
@@ -35,6 +36,8 @@ public class StartMenuView extends StackPane {
     private final Consumer<Opening> openingSelectedHandler;
 
     private boolean isBotMode = false;
+    private boolean isFriendMode = false;
+    private GameMode selectedGameMode = GameMode.STANDARD;
     private TextField fenInputOnTimeScreen;
 
     public StartMenuView(
@@ -69,12 +72,16 @@ public class StartMenuView extends StackPane {
         Button btnFriend = createMenuButton("Play with a friend");
         btnFriend.setOnAction(e -> {
             isBotMode = false;
-            showTimeSelection();
+            isFriendMode = true;
+            selectedGameMode = GameMode.STANDARD;
+            showGameModeSelection();
         });
 
         Button btnBot = createMenuButton("Play vs bot");
         btnBot.setOnAction(e -> {
             isBotMode = true;
+            isFriendMode = false;
+            selectedGameMode = GameMode.STANDARD;
             showTimeSelection();
         });
 
@@ -92,10 +99,43 @@ public class StartMenuView extends StackPane {
         getChildren().add(content);
     }
 
+    private void showGameModeSelection() {
+        getChildren().clear();
+
+        Label title = new Label("Play with a friend");
+        title.setTextFill(Color.WHITE);
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+
+        Label subtitle = new Label("Choose game mode");
+        subtitle.setTextFill(Color.web(ui.getAccent()));
+        subtitle.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+
+        Button btnStandard = createMenuButton("Standard chess");
+        btnStandard.setOnAction(e -> {
+            selectedGameMode = GameMode.STANDARD;
+            showTimeSelection();
+        });
+
+        Button btn960 = createMenuButton("Chess 960");
+        btn960.setOnAction(e -> {
+            selectedGameMode = GameMode.CHESS_960;
+            showTimeSelection();
+        });
+
+        Button btnBack = createMenuButton("Back");
+        btnBack.setOnAction(e -> showMainMenu());
+        VBox.setMargin(btnBack, new Insets(20, 0, 0, 0));
+
+        VBox content = createContainer();
+        content.getChildren().addAll(title, subtitle, btnStandard, btn960, btnBack);
+        getChildren().add(content);
+    }
+
     private void showTimeSelection() {
         getChildren().clear();
 
-        Label title = new Label(isBotMode ? "Play vs bot" : "Play with a friend");
+        String modeLabel = selectedGameMode == GameMode.CHESS_960 ? "Chess 960" : "Standard chess";
+        Label title = new Label(isBotMode ? "Play vs bot" : "Play with a friend — " + modeLabel);
         title.setTextFill(Color.WHITE);
         title.setFont(Font.font("Arial", FontWeight.BOLD, 24));
 
@@ -119,28 +159,41 @@ public class StartMenuView extends StackPane {
         HBox unlimitedButtonBox = new HBox(15, btnUnlimited);
         unlimitedButtonBox.setAlignment(Pos.CENTER);
 
-        Label fenSubtitle = new Label("Optional: FEN position");
-        fenSubtitle.setTextFill(Color.web(ui.getAccent()));
-        fenSubtitle.setFont(Font.font("Arial", FontWeight.BOLD, 13));
-        VBox.setMargin(fenSubtitle, new Insets(10, 0, 0, 0));
-
-        fenInputOnTimeScreen = new TextField();
-        fenInputOnTimeScreen.setPromptText("Paste FEN (empty = starting position)");
-        fenInputOnTimeScreen.setPrefWidth(300);
-        fenInputOnTimeScreen.setStyle(
-                "-fx-background-color: " + ui.getBackground() + ";" +
-                        "-fx-text-fill: " + ui.getTextPrimary() + ";" +
-                        "-fx-border-color: " + ui.getAccent() + ";" +
-                        "-fx-border-radius: 4;"
-        );
-
         Button btnBack = createMenuButton("Back");
-        btnBack.setOnAction(e -> showMainMenu());
+        btnBack.setOnAction(e -> {
+            if (isFriendMode) {
+                showGameModeSelection();
+            } else {
+                showMainMenu();
+            }
+        });
         VBox.setMargin(btnBack, new Insets(20, 0, 0, 0));
 
         VBox content = createContainer();
-        content.getChildren().addAll(title, subtitle, topButtons, bottomButtons, unlimitedButtonBox,
-                fenSubtitle, fenInputOnTimeScreen, btnBack);
+        content.getChildren().addAll(title, subtitle, topButtons, bottomButtons, unlimitedButtonBox, btnBack);
+
+        if (selectedGameMode == GameMode.STANDARD) {
+            Label fenSubtitle = new Label("Optional: FEN position");
+            fenSubtitle.setTextFill(Color.web(ui.getAccent()));
+            fenSubtitle.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+            VBox.setMargin(fenSubtitle, new Insets(10, 0, 0, 0));
+
+            fenInputOnTimeScreen = new TextField();
+            fenInputOnTimeScreen.setPromptText("Paste FEN (empty = starting position)");
+            fenInputOnTimeScreen.setPrefWidth(300);
+            fenInputOnTimeScreen.setStyle(
+                    "-fx-background-color: " + ui.getBackground() + ";" +
+                            "-fx-text-fill: " + ui.getTextPrimary() + ";" +
+                            "-fx-border-color: " + ui.getAccent() + ";" +
+                            "-fx-border-radius: 4;"
+            );
+            int backIndex = content.getChildren().indexOf(btnBack);
+            content.getChildren().add(backIndex, fenInputOnTimeScreen);
+            content.getChildren().add(backIndex, fenSubtitle);
+        } else {
+            fenInputOnTimeScreen = null;
+        }
+
         getChildren().add(content);
     }
 
@@ -254,7 +307,7 @@ public class StartMenuView extends StackPane {
         btn.setOnAction(event -> {
             String fen = fenInputOnTimeScreen == null ? null : fenInputOnTimeScreen.getText();
             String trimmedFen = (fen == null || fen.trim().isEmpty()) ? null : fen.trim();
-            gameStartHandler.onGameStart(timeInSeconds, isBotMode, trimmedFen);
+            gameStartHandler.onGameStart(timeInSeconds, isBotMode, selectedGameMode, trimmedFen);
         });
         return btn;
     }
