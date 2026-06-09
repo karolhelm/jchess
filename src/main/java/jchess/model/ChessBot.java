@@ -64,6 +64,10 @@ public class ChessBot {
                 int eval = minimax(gameManager, depth - 1, alpha, beta, false);
                 gameManager.undoMove(move);
 
+              
+                if (eval > 90000) eval--;
+                if (eval < -90000) eval++;
+
                 maxEval = Math.max(maxEval, eval);
                 alpha = Math.max(alpha, eval);
                 if (beta <= alpha) {
@@ -77,6 +81,9 @@ public class ChessBot {
                 gameManager.playMove(move);
                 int eval = minimax(gameManager, depth - 1, alpha, beta, true);
                 gameManager.undoMove(move);
+
+                if (eval > 90000) eval--;
+                if (eval < -90000) eval++;
 
                 minEval = Math.min(minEval, eval);
                 beta = Math.min(beta, eval);

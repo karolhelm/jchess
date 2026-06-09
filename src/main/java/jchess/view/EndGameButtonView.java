@@ -11,7 +11,7 @@ public class EndGameButtonView extends VBox {
     private final Button endBtn;
 
     public EndGameButtonView(UiConfig ui, Runnable onEndGame) {
-        setPadding(new Insets(0, 10, 6, 10));
+        setPadding(new Insets(0, 12, 8, 12));
         setAlignment(Pos.CENTER);
         setStyle("-fx-background-color: " + ui.getBackground() + ";");
 
@@ -20,7 +20,9 @@ public class EndGameButtonView extends VBox {
         endBtn.setStyle(
                 "-fx-background-color: #4a4744;" +
                         "-fx-text-fill: #ffffff;" +
-                        "-fx-background-radius: 6;"
+                        "-fx-background-radius: 6;" +
+                        "-fx-padding: 8 12;" +
+                        "-fx-font-size: 14px;"
         );
         endBtn.setOnAction(e -> onEndGame.run());
 
