@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 
 public class ChessApp extends Application {
     private static final double BASE_DPI = 96.0;
+    private static final double WINDOW_SHRINK = 0.9;
     private static final int TILE_SIZE = 75;
     private static final int OFFSET_SIZE = 30;
     private static final int RIGHT_PANEL_WIDTH = 240;
@@ -88,7 +89,7 @@ public class ChessApp extends Application {
                 this::onReviewClosed
         );
 
-        double displayScale = BASE_DPI / Screen.getPrimary().getDpi();
+        double displayScale = (BASE_DPI / Screen.getPrimary().getDpi()) * WINDOW_SHRINK;
         int windowWidth = (TILE_SIZE * 8) + OFFSET_SIZE + (int) EvaluationBarView.CONTAINER_WIDTH + RIGHT_PANEL_WIDTH;
         int windowHeight = (TILE_SIZE * 8) + OFFSET_SIZE + CHROME_HEIGHT;
 
