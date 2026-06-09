@@ -171,16 +171,15 @@ public class ChessApp extends Application {
         }
         drawBoard(null, null);
         removeStartMenuOverlay();
-        gameTimer.start(fenOrNull != null ? 0 : timeInSeconds);
+        gameTimer.start(timeInSeconds);
         gameReviewController.resetPositions();
         gameReviewController.recordPosition(FenParser.toFen(gameManager));
-        fenLoadedGame = (fenOrNull != null);
-        if (fenLoadedGame) {
-            showEvaluationBar();
-        } else {
-            evaluationBarView.hide();
-        }
+        fenLoadedGame = false;
+        evaluationBarView.hide();
         showGameOverIfPositionEnded();
+        if (isBot) {
+            controller.triggerBotMoveIfNeeded();
+        }
     }
     private void removeStartMenuOverlay() {
         appRoot.getChildren().remove(startMenuOverlay);

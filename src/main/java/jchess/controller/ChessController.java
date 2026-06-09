@@ -31,6 +31,10 @@ public class ChessController {
         this.isBotMode = isBotMode;
     }
 
+    public void triggerBotMoveIfNeeded() {
+        makeBotMove();
+    }
+
     public void setOpeningPreviewMode(boolean openingPreviewMode) {
         this.openingPreviewMode = openingPreviewMode;
     }
