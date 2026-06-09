@@ -3,12 +3,14 @@ package jchess.view;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import jchess.config.AppConfig;
 import jchess.config.AppConfigLoader;
@@ -29,9 +31,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ChessApp extends Application {
+    private static final double BASE_DPI = 96.0;
     private static final int TILE_SIZE = 75;
     private static final int OFFSET_SIZE = 30;
     private static final int RIGHT_PANEL_WIDTH = 240;
+    private static final int CHROME_HEIGHT = 170;
 
     private GameManager gameManager;
     private ChessController controller;
@@ -84,6 +88,10 @@ public class ChessApp extends Application {
                 this::onReviewClosed
         );
 
+        double displayScale = BASE_DPI / Screen.getPrimary().getDpi();
+        int windowWidth = (TILE_SIZE * 8) + OFFSET_SIZE + (int) EvaluationBarView.CONTAINER_WIDTH + RIGHT_PANEL_WIDTH;
+        int windowHeight = (TILE_SIZE * 8) + OFFSET_SIZE + CHROME_HEIGHT;
+
         BorderPane root = new BorderPane();
         appRoot = new StackPane(root);
         evaluationBarView = new EvaluationBarView(TILE_SIZE * 8);
@@ -107,7 +115,18 @@ public class ChessApp extends Application {
         showStartMenu();
         drawBoard(null, null);
 
-        Scene scene = new Scene(appRoot, (TILE_SIZE * 8) + OFFSET_SIZE + (int) EvaluationBarView.CONTAINER_WIDTH + RIGHT_PANEL_WIDTH, (TILE_SIZE * 8) + OFFSET_SIZE + 170);
+        Group scaledUi = new Group(appRoot);
+        scaledUi.setScaleX(displayScale);
+        scaledUi.setScaleY(displayScale);
+
+        StackPane sceneRoot = new StackPane(scaledUi);
+        sceneRoot.setStyle("-fx-background-color: " + ui().getBackground() + ";");
+
+        Scene scene = new Scene(
+                sceneRoot,
+                Math.max(1, (int) Math.round(windowWidth * displayScale)),
+                Math.max(1, (int) Math.round(windowHeight * displayScale))
+        );
         primaryStage.setTitle("JChess");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
