@@ -65,8 +65,10 @@ public class FenLoadView extends VBox {
         try {
             fenLoadHandler.accept(trimmed);
             errorLabel.setText("");
+        } catch (IllegalArgumentException ex) {
+            errorLabel.setText("Illegal FEN");
         } catch (Exception ex) {
-            errorLabel.setText("Invalid FEN");
+            errorLabel.setText("Illegal FEN");
         }
     }
 }

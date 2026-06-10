@@ -5,9 +5,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 public class FenParser {
     public static final String STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    private static final Pattern BOARD_PART_CHARS = Pattern.compile("^[prnbqkPRNBQK1-8/]+$");
 
     public static String resolveStartingFen(GameMode mode, String customFenOrNull) {
         if (customFenOrNull != null && !customFenOrNull.isBlank()) {
@@ -71,8 +74,55 @@ public class FenParser {
         return blackBackRank + "/pppppppp/8/8/8/8/PPPPPPPP/" + whiteBackRank + " w KQkq - 0 1";
     }
 
+    public static void validateBoardPart(String boardPart) {
+        if (boardPart == null || boardPart.isBlank()) {
+            throw new IllegalArgumentException("Illegal FEN");
+        }
+        if (!BOARD_PART_CHARS.matcher(boardPart).matches()) {
+            throw new IllegalArgumentException("Illegal FEN");
+        }
+        if (areKingsAdjacent(boardPart)) {
+            throw new IllegalArgumentException("Illegal FEN");
+        }
+    }
+
+    private static boolean areKingsAdjacent(String boardPart) {
+        int whiteKingRow = -1;
+        int whiteKingCol = -1;
+        int blackKingRow = -1;
+        int blackKingCol = -1;
+        int row = 0;
+        int col = 0;
+
+        for (char c : boardPart.toCharArray()) {
+            if (c == '/') {
+                row++;
+                col = 0;
+            } else if (c >= '1' && c <= '8') {
+                col += c - '0';
+            } else {
+                if (c == 'K') {
+                    whiteKingRow = row;
+                    whiteKingCol = col;
+                } else if (c == 'k') {
+                    blackKingRow = row;
+                    blackKingCol = col;
+                }
+                col++;
+            }
+        }
+
+        if (whiteKingRow < 0 || blackKingRow < 0) {
+            return false;
+        }
+
+        return Math.abs(whiteKingRow - blackKingRow) <= 1
+                && Math.abs(whiteKingCol - blackKingCol) <= 1;
+    }
+
     public static void loadFen(GameManager manager, String fen) {
         String[] parts = fen.split(" ");//splits FEN into parts
+        validateBoardPart(parts[0]);
         String boardPart = parts[0];
         Board board = manager.getBoard();
         for (int row = 0; row < 8; row++) {

@@ -186,8 +186,12 @@ public class ChessApp extends Application {
         controller.setBotMode(isBot);
         String startingFen = FenParser.resolveStartingFen(gameMode, fenOrNull);
         if (!startingFen.equals(FenParser.STARTING_FEN)) {
-            FenParser.loadFen(gameManager, startingFen);
-            refreshAfterPositionLoad();
+            try {
+                FenParser.loadFen(gameManager, startingFen);
+                refreshAfterPositionLoad();
+            } catch (IllegalArgumentException ignored) {
+                return;
+            }
         }
         drawBoard(null, null);
         removeStartMenuOverlay();

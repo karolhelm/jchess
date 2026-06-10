@@ -135,13 +135,16 @@ public class StartMenuView extends StackPane {
         getChildren().clear();
 
         String modeLabel = selectedGameMode == GameMode.CHESS_960 ? "Chess 960" : "Standard chess";
-        Label title = new Label(isBotMode ? "Play vs bot" : "Play with a friend — " + modeLabel);
+        Label title = new Label(isBotMode ? "Play vs bot" : "Play with a friend");
         title.setTextFill(Color.WHITE);
         title.setFont(Font.font("Arial", FontWeight.BOLD, 24));
 
-        Label subtitle = new Label("Choose time control");
+        Label subtitle = new Label(modeLabel + " — choose time control");
         subtitle.setTextFill(Color.web(ui.getAccent()));
         subtitle.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        subtitle.setWrapText(true);
+        subtitle.setMaxWidth(300);
+        subtitle.setAlignment(Pos.CENTER);
 
         Button btn1Min = createTimeButton("1 min", 60);
         Button btn3Min = createTimeButton("3 min", 180);
