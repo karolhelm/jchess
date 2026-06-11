@@ -135,7 +135,7 @@ public class StartMenuView extends StackPane {
         getChildren().clear();
 
         String modeLabel = selectedGameMode == GameMode.CHESS_960 ? "Chess 960" : "Standard chess";
-        Label title = new Label(isBotMode ? "Play vs bot" : "Play with a friend — " + modeLabel);
+        Label title = new Label(isBotMode ? "Play vs bot" : "Play with a friend");
         title.setTextFill(Color.WHITE);
         title.setFont(Font.font("Arial", FontWeight.BOLD, 24));
 
